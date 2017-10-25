@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     pwm.c
  * @version  V1.00
- * $Revision: 12 $
- * $Date: 15/01/16 1:46p $
+ * $Revision: 13 $
+ * $Date: 15/04/30 3:24p $
  * @brief    NUC131 series PWM driver source file
  *
  * @note
@@ -132,7 +132,7 @@ uint32_t PWM_ConfigOutputChannel(PWM_T *pwm, uint32_t u32ChannelNum, uint32_t u3
         break;
     }
     // Store return value here 'cos we're gonna change u16Prescale & u16CNR to the real value to fill into register
-    i = u32PWMClockSrc / ((u16Prescale + 1) * u16CNR);
+    i = u32PWMClockSrc / (u16Prescale * u16CNR);
 
     // convert to real register value
     // every two channels share a prescaler

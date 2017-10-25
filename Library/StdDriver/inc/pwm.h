@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     pwm.h
  * @version  V3.00
- * $Revision: 9 $
- * $Date: 14/12/30 1:59p $
+ * $Revision: 12 $
+ * $Date: 15/05/13 3:00p $
  * @brief    NUC131 series PWM driver header file
  *
  * @note
@@ -37,7 +37,14 @@ extern "C"
 #define PWM_CH_5_MASK                            (0x20UL)   /*!< PWM channel 5 mask \hideinitializer */
 
 /*---------------------------------------------------------------------------------------------------------*/
-/*  aligned Type Constant Definitions                                                                      */
+/*  Counter Type Constant Definitions                                                                      */
+/*---------------------------------------------------------------------------------------------------------*/
+#define PWM_UP_COUNTER                           (0UL)      /*!< Up counter type */
+#define PWM_DOWN_COUNTER                         (1UL)      /*!< Down counter type */
+#define PWM_UP_DOWN_COUNTER                      (2UL)      /*!< Up-Down counter type */
+
+/*---------------------------------------------------------------------------------------------------------*/
+/*  Aligned Type Constant Definitions                                                                      */
 /*---------------------------------------------------------------------------------------------------------*/
 #define PWM_EDGE_ALIGNED                         (1UL)      /*!< PWM working in edge aligned type(down count) */
 #define PWM_CENTER_ALIGNED                       (2UL)      /*!< PWM working in center aligned type */
@@ -191,7 +198,7 @@ extern "C"
  * @details This macro is used to enable output inverter of specified channel(s).
  * \hideinitializer
  */
-#define PWM_ENABLE_OUTPUT_INVERTER(pwm, u32ChannelMask) ((pwm)->POLCTL |= (u32ChannelMask))
+#define PWM_ENABLE_OUTPUT_INVERTER(pwm, u32ChannelMask) ((pwm)->POLCTL = (u32ChannelMask))
 
 /**
  * @brief This macro get captured rising data
@@ -221,18 +228,14 @@ extern "C"
  * @param[in] u32LevelMask Output logic to high or low
  * @return None
  * @details This macro is used to mask output logic to high or low of specified channel(s).
+ * @note If u32ChannelMask parameter is 0, then mask function will be disabled.
  * \hideinitializer
  */
 #define PWM_MASK_OUTPUT(pwm, u32ChannelMask, u32LevelMask) \
-    do{ \
-        int i;\
-        for(i = 0; i < 6; i++) { \
-            if((u32ChannelMask) & (1 << i)){ \
-                (pwm)->MSKEN |= (1UL << i); \
-                (pwm)->MSK = ((pwm)->MSK & ~(1UL << i)) | ((u32LevelMask) << i); \
-            } \
-        } \
-    }while(0)
+    { \
+        (pwm)->MSKEN = (u32ChannelMask); \
+        (pwm)->MSK = (u32LevelMask); \
+    }
 
 /**
  * @brief This macro set the prescaler of the selected channel

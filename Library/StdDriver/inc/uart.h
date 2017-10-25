@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     UART.h
  * @version  V3.0
- * $Revision: 14 $
- * $Date: 15/01/16 1:46p $
+ * $Revision: 17 $
+ * $Date: 15/03/10 11:51a $
  * @brief    NUC131 Series UART Interface Controller Driver Header File
  *
  * @note
@@ -102,10 +102,10 @@ extern "C"
 #define UART_LIN_CTL_LINS_HDET_EN   (0x1UL << UART_LIN_CTL_LINS_HDET_EN_Pos)  /*!< UA_LIN_CTL setting to set LIN Slave Header Detection Enable */
 #define UART_LIN_CTL_LINS_ARS_EN    (0x1UL << UART_LIN_CTL_LINS_ARS_EN_Pos)   /*!< UA_LIN_CTL setting to set LIN Slave Automatic Resynchronization Mode Enable */
 #define UART_LIN_CTL_LINS_DUM_EN    (0x1UL << UART_LIN_CTL_LINS_DUM_EN_Pos)   /*!< UA_LIN_CTL setting to set LIN Slave Divider Update Method Enable */
-#define UART_LIN_CTL_LIN_WAKE_EN    (0x1UL << UART_LIN_CTL_LIN_WAKE_EN_Pos)   /*!< UA_LIN_CTL setting to set LIN Wake-Up Mode Enable */
+#define UART_LIN_CTL_LIN_MUTE_EN    (0x1UL << UART_LIN_CTL_LIN_MUTE_EN_Pos)   /*!< UA_LIN_CTL setting to set LIN Mute Mode Enable */
 #define UART_LIN_CTL_LIN_SHD        (0x1UL << UART_LIN_CTL_LIN_SHD_Pos)       /*!< UA_LIN_CTL setting to set LIN TX Send Header Enable */
 #define UART_LIN_CTL_LIN_IDPEN      (0x1UL << UART_LIN_CTL_LIN_IDPEN_Pos)     /*!< UA_LIN_CTL setting to set LIN ID Parity Enable */
-#define UART_LIN_CTL_LIN_BKDET_ENN  (0x1UL << UART_LIN_CTL_LIN_BKDET_EN_Pos)  /*!< UA_LIN_CTL setting to set LIN Break Detection Enable */
+#define UART_LIN_CTL_LIN_BKDET_EN   (0x1UL << UART_LIN_CTL_LIN_BKDET_EN_Pos)  /*!< UA_LIN_CTL setting to set LIN Break Detection Enable */
 #define UART_LIN_CTL_LIN_RX_DIS     (0x1UL << UART_LIN_CTL_LIN_RX_DIS_Pos)    /*!< UA_LIN_CTL setting to set LIN Receiver Disable */
 #define UART_LIN_CTL_BIT_ERR_EN     (0x1UL << UART_LIN_CTL_BIT_ERR_EN_Pos)    /*!< UA_LIN_CTL setting to set Bit Error Detect Enable */
 #define UART_LIN_CTL_LIN_BKFL(x)    (((x)-1) << UART_LIN_CTL_LIN_BKFL_Pos)    /*!< UA_LIN_CTL setting to set LIN Break Field Length, x = 10 ~ 15, default value is 12 */
@@ -340,20 +340,30 @@ extern "C"
 /**
  *    @brief        Get specified interrupt indicator status
  *
- *    @param[in]    uart            The pointer of the specified UART module.
+ *    @param[in]    uart            Get specified interrupt flag/status
  *    @param[in]    u32eIntTypeFlag Interrupt Type Flag, should be
-  *                                 - UART_ISR_LIN_INT_Msk      : Lin bus interrupt
- *                                  - UART_ISR_BUF_ERR_INT_Msk  : Buffer Error interrupt
- *                                  - UART_ISR_TOUT_INT_Msk     : Rx time-out interrupt
- *                                  - UART_ISR_MODEM_INT_Msk    : Modem interrupt
- *                                  - UART_ISR_RLS_INT_Msk      : Rx Line status interrupt
- *                                  - UART_ISR_THRE_INT_Msk     : Tx empty interrupt
- *                                  - UART_ISR_RDA_INT_Msk      : Rx ready interrupt
+ *                                  - \ref UART_ISR_DATWKIF_Msk     : Data Wake-Up Interrupt Flag
+ *                                  - \ref UART_ISR_CTSWKIF_Msk     : nCTS Wake-Up Interrupt Flag 
+ *                                  - \ref UART_ISR_LIN_INT_Msk     : LIN Bus Interrupt Indicator
+ *                                  - \ref UART_ISR_BUF_ERR_INT_Msk : Buffer Error Interrupt Indicator
+ *                                  - \ref UART_ISR_TOUT_INT_Msk    : Time-out Interrupt Indicator
+ *                                  - \ref UART_ISR_MODEM_INT_Msk   : Modem Status Interrupt Indicator
+ *                                  - \ref UART_ISR_RLS_INT_Msk     : Receive Line Status Interrupt Indicator
+ *                                  - \ref UART_ISR_THRE_INT_Msk    : Transmit Holding Register Empty Interrupt Indicator
+ *                                  - \ref UART_ISR_RDA_INT_Msk     : Receive Data Available Interrupt Indicator
+ *                                  - \ref UART_ISR_LIN_IF_Msk      : LIN Bus Interrupt Flag
+ *                                  - \ref UART_ISR_WKIF_Msk        : UART Wake-Up Flag 
+ *                                  - \ref UART_ISR_BUF_ERR_IF_Msk  : Buffer Error Interrupt Flag
+ *                                  - \ref UART_ISR_TOUT_IF_Msk     : Rx Time-out Interrupt Flag
+ *                                  - \ref UART_ISR_MODEM_IF_Msk    : Modem Interrupt Flag
+ *                                  - \ref UART_ISR_RLS_IF_Msk      : Receive Line Status Interrupt Flag
+ *                                  - \ref UART_ISR_THRE_IF_Msk     : Tx Empty Interrupt Flag
+ *                                  - \ref UART_ISR_RDA_IF_Msk      : Rx Ready Interrupt Flag
  *
  *    @retval       0 The specified interrupt is not happened.
  *    @retval       1 The specified interrupt is happened.
  *
- *    @details      This macro get specified interrupt indicator status.
+ *    @details      This macro get specified interrupt flag or interrupt indicator status.
  */
 #define UART_GET_INT_FLAG(uart,u32eIntTypeFlag)    (((uart)->ISR & (u32eIntTypeFlag))?1:0)
 

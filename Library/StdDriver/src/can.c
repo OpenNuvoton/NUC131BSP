@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     adc.c
  * @version  V3.00
- * $Revision: 7 $
- * $Date: 1/08/15 12:01p $
+ * $Revision: 10 $
+ * $Date: 2/19/16 11:49a $
  * @brief    NUC131 series ADC driver source file
  *
  * @note
@@ -25,14 +25,13 @@
 /// @cond HIDDEN_SYMBOLS
 
 
-static uint32_t GetFreeIF(CAN_T  *tCAN);
-
+#define RETRY_COUNTS    (0x10000000)
 
 //#define DEBUG_PRINTF printf
 #define DEBUG_PRINTF(...)
 
 /**
-  * @brief Check if SmartCard slot is presented.
+  * @brief Check if any interface is available.
   * @param[in] tCAN The pointer to CAN module base address.
   * @retval 0 IF0 is free
   * @retval 1 IF1 is free
@@ -75,7 +74,6 @@ void CAN_EnterInitMode(CAN_T *tCAN)
 void CAN_LeaveInitMode(CAN_T *tCAN)
 {
     tCAN->CON &= (~(CAN_CON_INIT_Msk | CAN_CON_CCE_Msk));
-
     while(tCAN->CON & CAN_CON_INIT_Msk); /* Check INIT bit is released */
 }
 
@@ -97,6 +95,7 @@ void CAN_WaitMsg(CAN_T *tCAN)
             DEBUG_PRINTF("New Data IN\n");
             break;
         }
+
         if(tCAN->STATUS & CAN_STATUS_RXOK_Msk)
             DEBUG_PRINTF("Rx OK\n");
 
@@ -129,10 +128,10 @@ uint32_t CAN_GetCANBitRate(CAN_T  *tCAN)
   * @brief Switch the CAN into test mode.
   * @param[in] tCAN The pointer to CAN module base address.
   * @param[in] u8TestMask Specifies the configuration in test modes
-  *                       CAN_TEST_BASIC_Msk    : Enable basic mode of test mode
-  *                       CAN_TEST_SILENT_Msk  : Enable silent mode of test mode
-  *                       CAN_TEST_LBACK_Msk   : Enable Loop Back Mode of test mode
-  *                       CAN_TEST_TX0_Msk/CAN_TEST_TX1_Msk: Control CAN_TX pin bit field
+  *                     - CAN_TEST_BASIC_Msk: Enable basic mode of test mode
+  *                     - CAN_TEST_SILENT_Msk: Enable silent mode of test mode
+  *                     - CAN_TEST_LBACK_Msk: Enable Loop Back Mode of test mode
+  *                     - CAN_TEST_TX0_Msk/CAN_TEST_TX1_Msk: Control CAN_TX pin bit field
   * @return None
   * @details Switch the CAN into test mode. There are four test mode (BASIC/SILENT/LOOPBACK/
   *          LOOPBACK combined SILENT/CONTROL_TX_PIN)could be selected. After setting test mode,user
@@ -146,8 +145,8 @@ void CAN_EnterTestMode(CAN_T *tCAN, uint8_t u8TestMask)
 
 
 /**
-  * @brief    Leave the test mode
-  * @param[in]    tCAN     The pointer to CAN module base address.
+  * @brief Leave the test mode
+  * @param[in] tCAN The pointer to CAN module base address.
   * @return   None
   * @details  This function is used to Leave the test mode (switch into normal mode).
   */
@@ -295,13 +294,14 @@ int32_t CAN_BasicReceiveMsg(CAN_T *tCAN, STR_CANMSG_T* pCanMsg)
 }
 
 /**
-  * @brief Set Rx message object
+  * @brief Set Rx message object, include ID mask.
   * @param[in] u8MsgObj Specifies the Message object number, from 0 to 31.
   * @param[in] u8idType Specifies the identifier type of the frames that will be transmitted
   *                     This parameter can be one of the following values:
-  *                     CAN_STD_ID (standard ID, 11-bit)
-  *                     CAN_EXT_ID (extended ID, 29-bit)
+  *                     CAN_STD_ID: (standard ID, 11-bit)
+  *                     CAN_EXT_ID: (extended ID, 29-bit)
   * @param[in] u32id Specifies the identifier used for acceptance filtering.
+  * @param[in] u32idmask Specifies the identifier mask
   * @param[in] u8singleOrFifoLast Specifies the end-of-buffer indicator.
   *                               This parameter can be one of the following values:
   *                               TRUE: for a single receive object or a FIFO receive object that is the last one of the FIFO.
@@ -310,7 +310,67 @@ int32_t CAN_BasicReceiveMsg(CAN_T *tCAN, STR_CANMSG_T* pCanMsg)
   * @retval FALSE No useful interface
   * @details The function is used to configure a receive message object.
   */
-int32_t CAN_SetRxMsgObj(CAN_T  *tCAN, uint8_t u8MsgObj, uint8_t u8idType, uint32_t u32id, uint8_t u8singleOrFifoLast)
+int32_t CAN_SetRxMsgObjAndMsk(CAN_T *tCAN, uint8_t u8MsgObj, uint8_t u8idType, uint32_t u32id, uint32_t u32idmask, uint8_t u8singleOrFifoLast)
+{
+    uint8_t u8MsgIfNum;
+
+    if((u8MsgIfNum = GetFreeIF(tCAN)) == 2)                         /* Check Free Interface for configure */
+    {
+        return FALSE;
+    }
+    /* Command Setting */
+    tCAN->IF[u8MsgIfNum].CMASK = CAN_IF_CMASK_WRRD_Msk | CAN_IF_CMASK_MASK_Msk | CAN_IF_CMASK_ARB_Msk |
+                                 CAN_IF_CMASK_CONTROL_Msk | CAN_IF_CMASK_DATAA_Msk | CAN_IF_CMASK_DATAB_Msk;
+
+    if(u8idType == CAN_STD_ID)    /* According STD/EXT ID format,Configure Mask and Arbitration register */
+    {
+        tCAN->IF[u8MsgIfNum].ARB1 = 0;
+        tCAN->IF[u8MsgIfNum].ARB2 = CAN_IF_ARB2_MSGVAL_Msk | (u32id & 0x7FF) << 2;
+        tCAN->IF[u8MsgIfNum].MASK1 = 0;
+        tCAN->IF[u8MsgIfNum].MASK2 = CAN_IF_MASK2_MXTD_Msk | CAN_IF_MASK2_MDIR_Msk | (u32idmask & 0x7FF) << 2;
+    }
+    else
+    {
+        tCAN->IF[u8MsgIfNum].ARB1 = u32id & 0xFFFF;
+        tCAN->IF[u8MsgIfNum].ARB2 = CAN_IF_ARB2_MSGVAL_Msk | CAN_IF_ARB2_XTD_Msk | (u32id & 0x1FFF0000) >> 16;
+        tCAN->IF[u8MsgIfNum].MASK1 = u32idmask & 0xFFFF;
+        tCAN->IF[u8MsgIfNum].MASK2 = CAN_IF_MASK2_MXTD_Msk | CAN_IF_MASK2_MDIR_Msk | (u32idmask & 0x1FFF0000) >> 16;
+    }
+
+    //tCAN->IF[u8MsgIfNum].MCON |= CAN_IF_MCON_UMASK_Msk | CAN_IF_MCON_RXIE_Msk;
+    tCAN->IF[u8MsgIfNum].MCON = CAN_IF_MCON_UMASK_Msk | CAN_IF_MCON_RXIE_Msk;
+    if(u8singleOrFifoLast)
+        tCAN->IF[u8MsgIfNum].MCON |= CAN_IF_MCON_EOB_Msk;
+    else
+        tCAN->IF[u8MsgIfNum].MCON &= (~CAN_IF_MCON_EOB_Msk);
+
+    tCAN->IF[u8MsgIfNum].DAT_A1  = 0;
+    tCAN->IF[u8MsgIfNum].DAT_A2  = 0;
+    tCAN->IF[u8MsgIfNum].DAT_B1  = 0;
+    tCAN->IF[u8MsgIfNum].DAT_B2  = 0;
+
+    tCAN->IF[u8MsgIfNum].CREQ = 1 + u8MsgObj;
+
+    return TRUE;
+}
+
+/**
+  * @brief Set Rx message object
+  * @param[in] u8MsgObj Specifies the Message object number, from 0 to 31.
+  * @param[in] u8idType Specifies the identifier type of the frames that will be transmitted
+  *                     This parameter can be one of the following values:
+  *                   - CAN_STD_ID (standard ID, 11-bit)
+  *                   - CAN_EXT_ID (extended ID, 29-bit)
+  * @param[in] u32id Specifies the identifier used for acceptance filtering.
+  * @param[in] u8singleOrFifoLast Specifies the end-of-buffer indicator.
+  *                               This parameter can be one of the following values:
+  *                             - TRUE: for a single receive object or a FIFO receive object that is the last one of the FIFO.
+  *                             - FALSE: for a FIFO receive object that is not the last one.
+  * @retval TRUE SUCCESS
+  * @retval FALSE No useful interface
+  * @details The function is used to configure a receive message object.
+  */
+int32_t CAN_SetRxMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, uint8_t u8idType, uint32_t u32id, uint8_t u8singleOrFifoLast)
 {
     uint8_t u8MsgIfNum = 0;
 
@@ -352,7 +412,7 @@ int32_t CAN_SetRxMsgObj(CAN_T  *tCAN, uint8_t u8MsgObj, uint8_t u8idType, uint32
 
 /**
   * @brief Gets the message
-  * @param[in] u8MsgObj Specifies the Message object number, from 0 to 31.
+  * @param[in] u8MsgObj Specifies the Message object number from 0 to 31.
   * @param[in] u8Release Specifies the message release indicator.
   *                      This parameter can be one of the following values:
   *                      TRUE: the message object is released when getting the data.
@@ -420,7 +480,7 @@ int32_t CAN_ReadMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, uint8_t u8Release, STR_CAN
   * @brief Set bus baud-rate.
   *
   * @param[in] tCAN The pointer to CAN module base address.
-  * @param[in] u32BaudRate The target CAN baud-rate. The range of u32BaudRate is 1~1000KHz.
+  * @param[in] u32BaudRate The target CAN baud-rate. The range of u32BaudRate is 1Kbps~1000Kbps.
   *
   * @return u32CurrentBitRate  Real baud-rate value.
   *
@@ -490,7 +550,7 @@ void CAN_Close(CAN_T *tCAN)
   * @brief Set CAN operation mode and target baud-rate.
   *
   * @param[in] tCAN The pointer to CAN module base address.
-  * @param[in] u32BaudRate The target CAN baud-rate. The range of u32BaudRate is 1~1000KHz.
+  * @param[in] u32BaudRate The target CAN baud-rate. The range of u32BaudRate is 1Kbps~1000Kbps.
   * @param[in] u32Mode The CAN operation mode. Valid values are:
   *                    - CAN_NORMAL_MODE: Normal operation.
   *                    - CAN_BASIC_MODE:  Basic mode.
@@ -550,8 +610,8 @@ int32_t CAN_SetTxMsg(CAN_T *tCAN, uint32_t u32MsgNum , STR_CANMSG_T* pCanMsg)
     {
         /* extended ID*/
         tCAN->IF[u8MsgIfNum].ARB1 = (pCanMsg->Id) & 0xFFFF;
-        tCAN->IF[u8MsgIfNum].ARB2 = ((pCanMsg->Id) & 0x1FFF0000) >> 16 | CAN_IF_ARB2_DIR_Msk
-                                    | CAN_IF_ARB2_XTD_Msk | CAN_IF_ARB2_MSGVAL_Msk;
+        tCAN->IF[u8MsgIfNum].ARB2 = ((pCanMsg->Id) & 0x1FFF0000) >> 16 |
+                                    CAN_IF_ARB2_DIR_Msk | CAN_IF_ARB2_XTD_Msk | CAN_IF_ARB2_MSGVAL_Msk;
     }
 
     if(pCanMsg->FrameType)
@@ -574,7 +634,7 @@ int32_t CAN_SetTxMsg(CAN_T *tCAN, uint32_t u32MsgNum , STR_CANMSG_T* pCanMsg)
   * @brief Set transmit request bit.
   *
   * @param[in] tCAN The pointer to CAN module base address.
-  * @param[in] u32MsgNum Specifies the Message object number, from 0 to 31.
+  * @param[in] u32MsgNum Specifies the Message object number from 0 to 31.
   *
   * @return TRUE: Start transmit message.
   *
@@ -631,7 +691,10 @@ void CAN_EnableInt(CAN_T *tCAN, uint32_t u32Mask)
   * @brief Disable CAN interrupt.
   *
   * @param[in] tCAN The pointer to CAN module base address.
-  * @param[in] u32Mask Interrupt Mask. (CAN_CON_IE_Msk / CAN_CON_SIE_Msk / CAN_CON_EIE_Msk).
+  * @param[in] u32Mask Interrupt Mask. Valid values are:
+  *                    - CAN_CON_IE_Msk:  Module interrupt enable.
+  *                    - CAN_CON_SIE_Msk: Status change interrupt enable.
+  *                    - CAN_CON_EIE_Msk: Error interrupt enable.
   *
   * @return None
   *
@@ -652,7 +715,7 @@ void CAN_DisableInt(CAN_T *tCAN, uint32_t u32Mask)
   * @brief The function is used to configure a receive message object.
   *
   * @param[in] tCAN The pointer to CAN module base address.
-  * @param[in] u32MsgNum Specifies the Message object number, from 0 to 31.
+  * @param[in] u32MsgNum Specifies the Message object number from 0 to 31.
   * @param[in] u32IDType Specifies the identifier type of the frames that will be transmitted. Valid values are:
   *                      - CAN_STD_ID: The 11-bit identifier.
   *                      - CAN_EXT_ID: The 29-bit identifier.
@@ -682,7 +745,7 @@ int32_t CAN_SetRxMsg(CAN_T *tCAN, uint32_t u32MsgNum , uint32_t u32IDType, uint3
   * @brief The function is used to configure several receive message objects.
   *
   * @param[in] tCAN The pointer to CAN module base address.
-  * @param[in] u32MsgNum The starting MSG RAM number(0 ~ 31).
+  * @param[in] u32MsgNum The starting MSG RAM number, from 0 to 31.
   * @param[in] u32MsgCount the number of MSG RAM of the FIFO.
   * @param[in] u32IDType Specifies the identifier type of the frames that will be transmitted. Valid values are:
   *                      - CAN_STD_ID: The 11-bit identifier.
@@ -711,9 +774,7 @@ int32_t CAN_SetMultiRxMsg(CAN_T *tCAN, uint32_t u32MsgNum , uint32_t u32MsgCount
 
         while(CAN_SetRxMsgObj(tCAN, u32MsgNum, u32IDType, u32ID, u32EOB_Flag) == FALSE)
         {
-            u32TimeOutCount++;
-
-            if(u32TimeOutCount >= 0x10000000) return FALSE;
+            if(++u32TimeOutCount >= RETRY_COUNTS) return FALSE;
         }
     }
 
@@ -789,7 +850,7 @@ void CAN_CLR_INT_PENDING_BIT(CAN_T *tCAN, uint8_t u32MsgNum)
     uint32_t u32MsgIfNum = 0;
     uint32_t u32IFBusyCount = 0;
 
-    while(u32IFBusyCount < 0x10000000)
+    while(u32IFBusyCount < RETRY_COUNTS)
     {
         if((tCAN->IF[0].CREQ & CAN_IF_CREQ_BUSY_Msk) == 0)
         {

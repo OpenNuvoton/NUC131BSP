@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     NUC131.h
  * @version  V3.0
- * $Revision: 58 $
- * $Date: 15/01/16 1:44p $
+ * $Revision: 62 $
+ * $Date: 15/05/22 9:06a $
  * @brief    NUC131 Series Peripheral Access Layer Header File
  *
  * @note
@@ -30,6 +30,37 @@
   *
   * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
   */
+
+
+/**
+  * \page PG_REV Revision History
+  *
+  * <b>Revision 3.00.002</b>
+  * \li Fix PWM driver bug for output low when duty is 100%
+  * \li Fix BPWM driver bug for output low when duty is 100%
+  * \li Fix CLK driver bug in CLK_SetCoreClock():
+  * \li Fix CLK driver constant definitions error of (B)PWM0/1_MODULE clock source selection.
+  * \li Fix GPIO_ENABLE_DOUT_MASK() and GPIO_DISABLE_DOUT_MASK() bug of GPIO driver.
+  * \li Fix PWM driver bug of PWM_MASK_OUTPUT() to remove redundant parenthesis.
+  * \li Fix BPWM driver bug of BPWM_MASK_OUTPUT() to remove redundant parenthesis.
+  * \li Fix UART driver clear flag bug in UART_ClearIntFlag().
+  * \li Fix I2C driver module reset bug of I2C_Close().
+  * \li Fix clear RS-485 address byte detection flag bug in UART_RS485_CLEAR_ADDR_FLAG() of UART driver.
+  * \li Fix SYS_IS_SYSTEM_RST() bug, it is "SYS_RSTSRC_RSTS_SYS_Msk" but "SYS_RSTSRC_RSTS_MCU_Msk".
+  * \li Fix clear RS-485 address byte detection flag clear bug in RS485_HANDLE() of UART_RS485_Slave sample code.
+  * \li Fix UART RS485 RTS active level to high level active in RS485_9bitModeMaster() of UART RS485 Sample code.
+  * \li Fix NVIC_EnableIRQ() to NVIC_DisableIRQ() after CHIP wake-up in I2C_Wakeup_Slave sample code
+  * \li Add PWM_EnableLoadMode() and PWM_DisableLoadMode() functions to PWM driver
+  * \li Add PWM_SetBrakePinSource() function to PWM driver
+  * \li Add CLK_GetPCLKFreq() function to CLK driver
+  * \li Add new macro PWM_SET_DEADZONE_CLK_SRC() to PWM driver
+  * \li Add new macro SYS_IS_LVR_RST() to SYS driver.
+  * \li Add non-blocking printf implementation and use predefine compiler option to enable/disable it.
+  *
+  * <b>Revision 3.00.001</b>
+  * \li Updated to support new API
+*/
+
 
 
 #ifndef __NUC131_H__
@@ -145,9 +176,9 @@ typedef struct
 {
 
     /**
-     * ADDR0
+     * ADDR
      * ===================================================================================================
-     * Offset: 0x00-0x1C  ADC Data Register x
+     * Offset: 0x00-0x1C  ADC Data Register 0~7
      * ---------------------------------------------------------------------------------------------------
      * |Bits    |Field     |Descriptions
      * | :----: | :----:   | :---- |
@@ -252,9 +283,9 @@ typedef struct
     __IO uint32_t ADCHER;
 
     /**
-     * ADCMPRx
+     * ADCMPR
      * ===================================================================================================
-     * Offset: 0x28  ADC Compare Register x
+     * Offset: 0x28, 0x2C  ADC Compare Register 0 & 1
      * ---------------------------------------------------------------------------------------------------
      * |Bits    |Field     |Descriptions
      * | :----: | :----:   | :---- |
@@ -7370,7 +7401,7 @@ typedef struct
      * |        |          |The value in this field is the frequency divider for generating the SPI peripheral clock and the SPI bus clock of SPI master.
      * |        |          |The frequency is obtained according to the following equation.
      * |        |          |If the bit of BCn, SPI_CNTRL2[31], is set to 0,
-     * |        |          |   SPI peripheral clock frequency = system clock frequency / (DIVIDER + 1) / 2
+     * |        |          |   SPI peripheral clock frequency = SPI peripheral clock source frequency / (DIVIDER + 1) / 2
      * |        |          |else if BCn is set to 1,
      * |        |          |   SPI peripheral clock frequency = SPI peripheral clock source frequency / (DIVIDER + 1)
      * |        |          |The SPI peripheral clock source is defined in the CLKSEL1 register.
@@ -9697,19 +9728,19 @@ typedef struct
      * |        |          |0 = No effect.
      * |        |          |1 = Reset the TX internal state machine and pointers.
      * |        |          |Note: This bit will automatically clear at least 3 UART peripheral clock cycles.
-     * |[7:4]   |RFITL     |RX FIFO Interrupt (INT_RDA) Trigger Level
-     * |        |          |When the number of bytes in the receive FIFO equals the RFITL, the RDA_IF will be set (if UA_IER [RDA_IEN] enabled, and an interrupt will be generated).
+     * |[7:4]   |RFITL     |RX FIFO Interrupt Trigger Level
+     * |        |          |When the number of bytes in the receive FIFO equals the RFITL, the RDA_IF will be set (if RDA_IEN(UA_IER[0]) enabled, and an interrupt will be generated).
      * |        |          |0000 = RX FIFO Interrupt Trigger Level is 1 byte.
      * |        |          |0001 = RX FIFO Interrupt Trigger Level is 4 bytes.
      * |        |          |0010 = RX FIFO Interrupt Trigger Level is 8 bytes.
      * |        |          |0011 = RX FIFO Interrupt Trigger Level is 14 bytes.
      * |        |          |Other = Reserved.
      * |[8]     |RX_DIS    |Receiver Disable Register
-     * |        |          |The receiver is disabled or not (set 1 to disable receiver)
+     * |        |          |The receiver is disabled or not (set 1 to disable receiver).
      * |        |          |0 = Receiver Enabled.
      * |        |          |1 = Receiver Disabled.
      * |        |          |Note: This field is used for RS-485 Normal Multi-drop mode.
-     * |        |          |It should be programmed before RS485_NMM(UA_ALT_CSR [8]) is programmed.
+     * |        |          |It should be programmed before RS485_NMM(UA_ALT_CSR[8]) is programmed.
      * |[19:16] |RTS_TRI_LEV|RTS Trigger Level For Auto-Flow Control Use (Available In UART0/UART1 Channel)
      * |        |          |0000 = RTS Trigger Level is 1 byte.
      * |        |          |0001 = RTS Trigger Level is 4 bytes.
@@ -10596,8 +10627,8 @@ typedef struct
 #define UART_LIN_CTL_LIN_SHD_Pos        8                                         /*!< UART_T::LIN_CTL: LIN_SHD Position       */
 #define UART_LIN_CTL_LIN_SHD_Msk        (1ul << UART_LIN_CTL_LIN_SHD_Pos)         /*!< UART_T::LIN_CTL: LIN_SHD Mask           */
 
-#define UART_LIN_CTL_LIN_WAKE_EN_Pos    4                                          /*!< UART_T::LIN_CTL: LIN_WAKE_EN Position       */
-#define UART_LIN_CTL_LIN_WAKE_EN_Msk    (1ul << UART_LIN_CTL_LIN_WAKE_EN_Pos)      /*!< UART_T::LIN_CTL: LIN_WAKE_EN Mask           */
+#define UART_LIN_CTL_LIN_MUTE_EN_Pos    4                                          /*!< UART_T::LIN_CTL: LIN_MUTE_EN Position       */
+#define UART_LIN_CTL_LIN_MUTE_EN_Msk    (1ul << UART_LIN_CTL_LIN_MUTE_EN_Pos)      /*!< UART_T::LIN_CTL: LIN_MUTE_EN Mask           */
 
 #define UART_LIN_CTL_LINS_DUM_EN_Pos    3                                          /*!< UART_T::LIN_CTL: LINS_DUM_EN Position       */
 #define UART_LIN_CTL_LINS_DUM_EN_Msk    (1ul << UART_LIN_CTL_LINS_DUM_EN_Pos)      /*!< UART_T::LIN_CTL: LINS_DUM_EN Mask           */

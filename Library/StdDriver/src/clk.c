@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     clk.c
  * @version  V3.00
- * $Revision: 23 $
- * $Date: 15/01/16 1:46p $
+ * $Revision: 25 $
+ * $Date: 15/10/26 8:42a $
  * @brief    NUC131 series CLK driver source file
  *
  * @note
@@ -181,11 +181,11 @@ uint32_t CLK_SetCoreClock(uint32_t u32Hclk)
     CLK->CLKSEL0 |= CLK_CLKSEL0_HCLK_S_Msk;
     CLK->CLKDIV &= (~CLK_CLKDIV_HCLK_N_Msk);
 
-    /* Configure PLL setting if HXT clock is enabled */
-    if(CLK->PWRCON & CLK_PWRCON_XTL12M_EN_Msk)
+    /* Configure PLL setting if HXT clock is stable */
+    if(CLK->CLKSTATUS & CLK_CLKSTATUS_XTL12M_STB_Msk)
         u32Hclk = CLK_EnablePLL(CLK_PLLCON_PLL_SRC_HXT, (u32Hclk << 1));
 
-    /* Configure PLL setting if HXT clock is not enabled */
+    /* Configure PLL setting if HXT clock is not stable */
     else
     {
         u32Hclk = CLK_EnablePLL(CLK_PLLCON_PLL_SRC_HIRC, (u32Hclk << 1));
@@ -618,6 +618,52 @@ uint32_t CLK_WaitClockReady(uint32_t u32ClkMask)
     }
 
     return 1;
+}
+
+/**
+  * @brief      Enable System Tick counter
+  * @param[in]  u32ClkSrc is System Tick clock source. Including:
+  *             - \ref CLK_CLKSEL0_STCLK_S_HXT
+  *             - \ref CLK_CLKSEL0_STCLK_S_HXT_DIV2
+  *             - \ref CLK_CLKSEL0_STCLK_S_HCLK_DIV2
+  *             - \ref CLK_CLKSEL0_STCLK_S_HIRC_DIV2
+  *             - \ref CLK_CLKSEL0_STCLK_S_HCLK
+  * @param[in]  u32Count is System Tick reload value. It could be 0~0xFFFFFF.
+  * @return     None
+  * @details    This function set System Tick clock source, reload value, enable System Tick counter and interrupt.
+  *             The register write-protection function should be disabled before using this function. 
+  */
+void CLK_EnableSysTick(uint32_t u32ClkSrc, uint32_t u32Count) 
+{
+    /* Set System Tick counter disabled */
+    SysTick->CTRL = 0;    
+
+    /* Set System Tick clock source */
+    if( u32ClkSrc == CLK_CLKSEL0_STCLK_S_HCLK )         
+        SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
+    else
+        CLK->CLKSEL0 = (CLK->CLKSEL0 & ~CLK_CLKSEL0_STCLK_S_Msk) | u32ClkSrc; 
+
+    /* Set System Tick reload value */
+    SysTick->LOAD = u32Count;   
+    
+    /* Clear System Tick current value and counter flag */
+    SysTick->VAL = 0;           
+    
+    /* Set System Tick interrupt enabled and counter enabled */    
+    SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;       
+}
+
+/**
+  * @brief      Disable System Tick counter
+  * @param      None 
+  * @return     None
+  * @details    This function disable System Tick counter.
+  */
+void CLK_DisableSysTick(void) 
+{    
+    /* Set System Tick counter disabled */
+	SysTick->CTRL = 0;    
 }
 
 

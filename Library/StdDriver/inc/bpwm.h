@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     bpwm.h
  * @version  V1.00
- * $Revision: 5 $
- * $Date: 14/12/30 1:58p $
+ * $Revision: 8 $
+ * $Date: 15/05/13 3:00p $
  * @brief    NUC131 series PWM driver header file
  *
  * @note
@@ -37,7 +37,14 @@ extern "C"
 #define BPWM_CH_5_MASK                            (0x20UL)   /*!< BPWM channel 5 mask \hideinitializer */
 
 /*---------------------------------------------------------------------------------------------------------*/
-/*  aligned Type Constant Definitions                                                                      */
+/*  Counter Type Constant Definitions                                                                      */
+/*---------------------------------------------------------------------------------------------------------*/
+#define BPWM_UP_COUNTER                           (0UL)      /*!< Up counter type */
+#define BPWM_DOWN_COUNTER                         (1UL)      /*!< Down counter type */
+#define BPWM_UP_DOWN_COUNTER                      (2UL)      /*!< Up-Down counter type */
+
+/*---------------------------------------------------------------------------------------------------------*/
+/*  Aligned Type Constant Definitions                                                                      */
 /*---------------------------------------------------------------------------------------------------------*/
 #define BPWM_EDGE_ALIGNED                         (1UL)      /*!< BPWM working in edge aligned type(down count) */
 #define BPWM_CENTER_ALIGNED                       (2UL)      /*!< BPWM working in center aligned type */
@@ -125,7 +132,7 @@ extern "C"
  * @return None
  * \hideinitializer
  */
-#define BPWM_ENABLE_OUTPUT_INVERTER(bpwm, u32ChannelMask) ((bpwm)->POLCTL |= (u32ChannelMask))
+#define BPWM_ENABLE_OUTPUT_INVERTER(bpwm, u32ChannelMask) ((bpwm)->POLCTL = (u32ChannelMask))
 
 /**
  * @brief This macro get captured rising data
@@ -152,18 +159,15 @@ extern "C"
  *                           Bit 0 represents channel 0, bit 1 represents channel 1...
  * @param[in] u32LevelMask Output logic to high or low
  * @return None
+ * @details This macro is used to mask output logic to high or low of specified channel(s).
+ * @note If u32ChannelMask parameter is 0, then mask function will be disabled.
  * \hideinitializer
  */
 #define BPWM_MASK_OUTPUT(bpwm, u32ChannelMask, u32LevelMask) \
-    do{ \
-        int i;\
-        for(i = 0; i < 6; i++) { \
-            if((u32ChannelMask) & (1 << i)){ \
-                (bpwm)->MSKEN |= (1UL << i); \
-                (bpwm)->MSK = ((bpwm)->MSK & ~(1UL << i)) | ((u32LevelMask) << i); \
-            } \
-        } \
-    }while(0)
+    { \
+        (bpwm)->MSKEN = (u32ChannelMask); \
+        (bpwm)->MSK = (u32LevelMask); \
+    }
 
 /**
  * @brief This macro set the prescaler of all channels

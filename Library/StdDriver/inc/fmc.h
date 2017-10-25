@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     FMC.h
  * @version  V3.0
- * $Revision: 7 $
- * $Date: 14/10/07 11:20a $
+ * $Revision: 8 $
+ * $Date: 15/05/19 3:41p $
  * @brief    NUC131 Series Flash Memory Controller Driver Header File
  *
  * @note
@@ -293,6 +293,7 @@ static __INLINE int32_t FMC_Erase(uint32_t u32addr)
     /* Check ISPFF flag to know whether erase OK or fail. */
     if(FMC->ISPCON & FMC_ISPCON_ISPFF_Msk)
     {
+        FMC->ISPCON |= FMC_ISPCON_ISPFF_Msk;
         return -1;
     }
     return 0;

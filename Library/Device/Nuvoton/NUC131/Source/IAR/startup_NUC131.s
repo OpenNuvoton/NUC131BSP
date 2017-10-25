@@ -102,6 +102,7 @@ Reset_Handler
         LDR      R0, =__iar_program_start
         BX       R0
 
+    PUBWEAK HardFault_Handler 
     PUBWEAK NMI_Handler       
     PUBWEAK SVC_Handler       
     PUBWEAK PendSV_Handler    

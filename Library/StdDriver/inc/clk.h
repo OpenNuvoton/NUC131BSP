@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     clk.h
  * @version  V3.0
- * $Revision: 13 $
- * $Date: 15/01/15 10:56a $
+ * $Revision: 17 $
+ * $Date: 17/07/24 1:24p $
  * @brief    NUC131 Series Clock Control Driver Header File
  *
  * @note
@@ -47,6 +47,7 @@ extern "C"
 #define CLK_CLKSEL0_STCLK_S_HXT_DIV2    (0x2UL<<CLK_CLKSEL0_STCLK_S_Pos)  /*!< Setting STCLK clock source as external X'tal/2 */
 #define CLK_CLKSEL0_STCLK_S_HCLK_DIV2   (0x3UL<<CLK_CLKSEL0_STCLK_S_Pos)  /*!< Setting STCLK clock source as HCLK/2 */
 #define CLK_CLKSEL0_STCLK_S_HIRC_DIV2   (0x7UL<<CLK_CLKSEL0_STCLK_S_Pos)  /*!< Setting STCLK clock source as internal 22.1184MHz RC clock/2 */
+#define CLK_CLKSEL0_STCLK_S_HCLK        (0x1UL<<SysTick_CTRL_CLKSOURCE_Pos)  /*!< Setting STCLK clock source as HCLK */
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -140,7 +141,7 @@ extern "C"
 #define CLK_PLLCON_48MHz_HXT   (CLK_PLLCON_PLL_SRC_HXT | CLK_PLLCON_NR(7) | CLK_PLLCON_NF(112) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 48MHz PLL output with 12MHz X'tal */
 #define CLK_PLLCON_36MHz_HXT   (CLK_PLLCON_PLL_SRC_HXT | CLK_PLLCON_NR(7) | CLK_PLLCON_NF( 84) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 36MHz PLL output with 12MHz X'tal */
 #define CLK_PLLCON_32MHz_HXT   (CLK_PLLCON_PLL_SRC_HXT | CLK_PLLCON_NR(6) | CLK_PLLCON_NF( 64) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 32MHz PLL output with 12MHz X'tal */
-#define CLK_PLLCON_24MHz_HXT   (CLK_PLLCON_PLL_SRC_HXT | CLK_PLLCON_NR(2) | CLK_PLLCON_NF( 16) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 24MHz PLL output with 12MHz X'tal */
+#define CLK_PLLCON_25MHz_HXT   (CLK_PLLCON_PLL_SRC_HXT | CLK_PLLCON_NR(3) | CLK_PLLCON_NF( 25) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 25MHz PLL output with 12MHz X'tal */
 #else
 # error "The PLL pre-definitions are only valid when external crystal is 12MHz"
 #endif
@@ -149,7 +150,7 @@ extern "C"
 #define CLK_PLLCON_48MHz_HIRC (CLK_PLLCON_PLL_SRC_HIRC | CLK_PLLCON_NR(13) | CLK_PLLCON_NF(113) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 48.064985MHz PLL output with 22.1184MHz IRC*/
 #define CLK_PLLCON_36MHz_HIRC (CLK_PLLCON_PLL_SRC_HIRC | CLK_PLLCON_NR(12) | CLK_PLLCON_NF( 78) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 35.9424MHz PLL output with 22.1184MHz IRC */
 #define CLK_PLLCON_32MHz_HIRC (CLK_PLLCON_PLL_SRC_HIRC | CLK_PLLCON_NR( 9) | CLK_PLLCON_NF( 52) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 31.9488MHz PLL output with 22.1184MHz IRC*/
-#define CLK_PLLCON_24MHz_HIRC (CLK_PLLCON_PLL_SRC_HIRC | CLK_PLLCON_NR( 3) | CLK_PLLCON_NF( 13) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 23.9616MHz PLL output with 22.1184MHz IRC*/
+#define CLK_PLLCON_25MHz_HIRC (CLK_PLLCON_PLL_SRC_HIRC | CLK_PLLCON_NR(13) | CLK_PLLCON_NF( 59) | CLK_PLLCON_NO_4) /*!< Predefined PLLCON setting for 25.0959MHz PLL output with 22.1184MHz IRC*/
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -332,7 +333,52 @@ __STATIC_INLINE void CLK_SysTickDelay(uint32_t us)
 
     /* Waiting for down-count to zero */
     while((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0);
+    
+    /* Disable SysTick counter */
+    SysTick->CTRL = 0;    
 }
+
+/**
+  * @brief      This function execute long delay function.
+  * @param[in]  us  Delay time. 
+  * @return     None
+  * @details    Use the SysTick to generate the long delay time and the UNIT is in us.
+  *             The SysTick clock source is from HCLK, i.e the same as system core clock.
+  *             User can use SystemCoreClockUpdate() to calculate CyclesPerUs automatically before using this function.
+  */
+__STATIC_INLINE void CLK_SysTickLongDelay(uint32_t us)
+{
+    uint32_t delay;
+        
+    /* It should <= 335544us for each delay loop */
+    delay = 335544UL;
+
+    do
+    {
+        if(us > delay)
+        {
+            us -= delay;
+        }
+        else
+        {
+            delay = us;
+            us = 0UL;
+        }        
+        
+        SysTick->LOAD = delay * CyclesPerUs;
+        SysTick->VAL  = (0x0UL);
+        SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
+
+        /* Waiting for down-count to zero */
+        while((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0UL);
+
+        /* Disable SysTick counter */
+        SysTick->CTRL = 0UL;
+    
+    }while(us > 0UL);
+    
+}
+
 
 
 void CLK_DisableCKO(void);
@@ -354,6 +400,8 @@ void CLK_DisableModuleClock(uint32_t u32ModuleIdx);
 uint32_t CLK_EnablePLL(uint32_t u32PllClkSrc, uint32_t u32PllFreq);
 void CLK_DisablePLL(void);
 uint32_t CLK_WaitClockReady(uint32_t u32ClkMask);
+void CLK_EnableSysTick(uint32_t u32ClkSrc, uint32_t u32Count);
+void CLK_DisableSysTick(void);
 
 
 /*@}*/ /* end of group NUC131_CLK_EXPORTED_FUNCTIONS */

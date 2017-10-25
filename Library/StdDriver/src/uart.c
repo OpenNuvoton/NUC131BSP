@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     uart.c
  * @version  V3.00
- * $Revision: 15 $
- * $Date: 15/01/16 1:46p $
+ * $Revision: 17 $
+ * $Date: 16/03/04 9:32a $
  * @brief    NUC131 series UART driver source file
  *
  * @note
@@ -45,7 +45,7 @@ void UART_ClearIntFlag(UART_T* uart , uint32_t u32InterruptFlag)
 
     if(u32InterruptFlag & UART_ISR_RLS_INT_Msk)   /* clear Receive Line Status Interrupt */
     {
-        uart->FSR = UART_FSR_BIF_Msk | UART_FSR_FEF_Msk | UART_FSR_FEF_Msk;
+        uart->FSR = UART_FSR_BIF_Msk | UART_FSR_FEF_Msk | UART_FSR_PEF_Msk;
         uart->FSR = UART_FSR_RS485_ADD_DETF_Msk;
     }
 
@@ -458,7 +458,7 @@ void UART_SelectRS485Mode(UART_T* uart, uint32_t u32Mode, uint32_t u32Addr)
  *    @param[in]    u32Mode         The LIN direction :
  *                                  - UART_ALT_CSR_LIN_TX_EN_Msk
  *                                  - UART_ALT_CSR_LIN_RX_EN_Msk
- *                                  - (UART_ALT_CSR_LIN_TX_EN_Msk|UART_ALT_CSR_LIN_TX_EN_Msk)
+ *                                  - (UART_ALT_CSR_LIN_TX_EN_Msk|UART_ALT_CSR_LIN_RX_EN_Msk)
  *    @param[in]    u32BreakLength  The breakfield length.
  *
  *    @return       None
@@ -471,7 +471,7 @@ void UART_SelectLINMode(UART_T* uart, uint32_t u32Mode, uint32_t u32BreakLength)
     uart->FUN_SEL = UART_FUNC_SEL_LIN;
 
     /* Select LIN function setting : Tx enable, Rx enable and break field length */
-    uart->ALT_CSR &= ~(UART_ALT_CSR_LIN_TX_EN_Msk | UART_ALT_CSR_LIN_TX_EN_Msk | UART_ALT_CSR_UA_LIN_BKFL_Msk);
+    uart->ALT_CSR &= ~(UART_ALT_CSR_LIN_TX_EN_Msk | UART_ALT_CSR_LIN_RX_EN_Msk | UART_ALT_CSR_UA_LIN_BKFL_Msk);
     uart->ALT_CSR |= (u32Mode | (u32BreakLength << UART_ALT_CSR_UA_LIN_BKFL_Pos));
 }
 
