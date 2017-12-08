@@ -104,7 +104,7 @@ void SYS_Init(void)
     SYS->GPB_MFP |= (SYS_GPB_MFP_PB0_UART0_RXD | SYS_GPB_MFP_PB1_UART0_TXD);
 
     /* Set GPC multi-function pins for BPWM0 Channel 0 */
-    SYS->GPC_MFP = (SYS->GPC_MFP & (~SYS_GPC_MFP_PC0_Msk));
+    SYS->GPC_MFP &= ~(SYS_GPC_MFP_PC0_Msk);
     SYS->GPC_MFP |= SYS_GPC_MFP_PC0_BPWM0_CH0;
     SYS->ALT_MFP3 &= ~(SYS_ALT_MFP3_PC0_Msk);
     SYS->ALT_MFP3 |= SYS_ALT_MFP3_PC0_BPWM0_CH0;

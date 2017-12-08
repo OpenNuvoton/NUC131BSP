@@ -98,7 +98,7 @@ void SYS_Init(void)
     SYS->GPA_MFP |= SYS_GPA_MFP_PA0_ADC0 | SYS_GPA_MFP_PA1_ADC1 | SYS_GPA_MFP_PA2_ADC2 | SYS_GPA_MFP_PA3_ADC3 ;
 
     /* Configure the PA12 as PWM0 output pin */
-    SYS->GPA_MFP = (SYS->GPA_MFP & (~SYS_GPA_MFP_PA12_Msk));
+    SYS->GPA_MFP &= ~(SYS_GPA_MFP_PA12_Msk);
     SYS->GPA_MFP |= SYS_GPA_MFP_PA12_PWM0_CH0;
 
 

@@ -171,10 +171,10 @@ void SYS_Init(void)
     SYS->GPB_MFP |= (SYS_GPB_MFP_PB0_UART0_RXD | SYS_GPB_MFP_PB1_UART0_TXD);
 
     /* Set GPA multi-function pins for PWM0 Channel 0 and PWM1 channel 0 */
-    SYS->GPA_MFP = (SYS->GPA_MFP & (~SYS_GPA_MFP_PA12_Msk));
+    SYS->GPA_MFP &= ~(SYS_GPA_MFP_PA12_Msk);
     SYS->GPA_MFP |= SYS_GPA_MFP_PA12_PWM0_CH0;
 
-    SYS->GPA_MFP = (SYS->GPA_MFP & (~SYS_GPA_MFP_PA2_Msk));
+    SYS->GPA_MFP &= ~(SYS_GPA_MFP_PA2_Msk);
     SYS->GPA_MFP |= SYS_GPA_MFP_PA2_PWM1_CH0;
     SYS->ALT_MFP3 &= ~(SYS_ALT_MFP3_PA2_Msk);
     SYS->ALT_MFP3 |= SYS_ALT_MFP3_PA2_PWM1_CH0;
