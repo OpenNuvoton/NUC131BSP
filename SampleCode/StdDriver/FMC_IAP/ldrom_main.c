@@ -65,6 +65,46 @@ void UART_Init()
 }
 
 
+/**
+ * @brief    Routine to get a char
+ * @param    None
+ * @returns  Get value from UART debug port or semihost
+ * @details  Wait UART debug port or semihost to input a char.
+ */
+static char GetChar(void)
+{
+    while(1)
+    {
+        if ((UART0->FSR & UART_FSR_RX_EMPTY_Msk) == 0)
+        {
+            return (UART0->DATA);
+        }
+    }
+}
+
+/*
+ * @returns     Send value from UART debug port
+ * @details     Send a target char to UART debug port .
+ */
+static void SendChar_ToUART(int ch)
+{
+    while (UART0->FSR & UART_FSR_TX_FULL_Msk);
+
+    UART0->DATA = ch;
+    if(ch == '\n')
+    {
+        while (UART0->FSR & UART_FSR_TX_FULL_Msk);
+        UART0->DATA = '\r';
+    }
+}
+
+static void PutString(char *str)
+{
+    while (*str != '\0')
+    {
+        SendChar_ToUART(*str++);
+    }
+}
 
 
 int main()
@@ -75,16 +115,16 @@ int main()
     SYS_Init();
     UART_Init();
 
-    printf("\n\n");
-    printf("NUC131 FMC IAP Sample Code [LDROM code]\n");
+    PutString("\n\n");
+    PutString("NUC131 FMC IAP Sample Code [LDROM code]\n");
 
     /* Enable FMC ISP function */
     FMC_Open();
 
-    printf("\n\nPress any key to branch to APROM...\n");
-    getchar();
+    PutString("\n\nPress any key to branch to APROM...\n");
+    GetChar();
 
-    printf("\n\nChange VECMAP and branch to LDROM...\n");
+    PutString("\n\nChange VECMAP and branch to LDROM...\n");
     UART_WAIT_TX_EMPTY(UART0);
 
     /* Mask all interrupt before changing VECMAP to avoid wrong interrupt handler fetched */
