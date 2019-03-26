@@ -170,13 +170,13 @@ uint32_t GetAVDDCodeByADC(void)
     /* Lock protected registers */
     SYS_LockReg();
 
+    /* Power on ADC */
+    ADC_POWER_ON(ADC);
+
     /* Configure ADC: single-end input, single scan mode, enable ADC analog circuit. */
     ADC_Open(ADC, ADC_ADCR_DIFFEN_SINGLE_END, ADC_ADCR_ADMD_SINGLE, BIT7);
     /* Configure the analog input source of channel 7 as internal band-gap voltage */
     ADC_CONFIG_CH7(ADC, ADC_ADCHER_PRESEL_INT_BANDGAP);
-
-    /* Power on ADC */
-    ADC_POWER_ON(ADC);
 
     /* Clear conversion finish flag */
     ADC_CLR_INT_FLAG(ADC, ADC_ADF_INT);
