@@ -342,9 +342,9 @@ void PWM_EnableFaultBrake(PWM_T *pwm, uint32_t u32ChannelMask, uint32_t u32Level
         if(u32ChannelMask & (1 << i))
         {
             if((u32BrakeSource == PWM_FB_EDGE_SYS_CSS) || (u32BrakeSource == PWM_FB_EDGE_SYS_BOD) || \
-                    (u32BrakeSource == PWM_FB_EDGE_SYS_RAM) || (u32BrakeSource == PWM_FB_EDGE_SYS_COR) || \
+                    (u32BrakeSource == PWM_FB_EDGE_SYS_COR) || \
                     (u32BrakeSource == PWM_FB_LEVEL_SYS_CSS) || (u32BrakeSource == PWM_FB_LEVEL_SYS_BOD) || \
-                    (u32BrakeSource == PWM_FB_LEVEL_SYS_RAM) || (u32BrakeSource == PWM_FB_LEVEL_SYS_COR))
+                    (u32BrakeSource == PWM_FB_LEVEL_SYS_COR))
             {
                 *(__IO uint32_t *)(&((pwm)->BRKCTL0_1) + (i >> 1)) |= (u32BrakeSource & (PWM_BRKCTL0_1_SYSEBEN_Msk | PWM_BRKCTL0_1_SYSLBEN_Msk));
                 (pwm)->FAILBRK |= (u32BrakeSource & 0xF);

@@ -75,14 +75,12 @@ extern "C"
 #define PWM_FB_EDGE_BKP1                         (PWM_BRKCTL0_1_BRKP1EEN_Msk)    /*!< BKP1 pin as edge-detect fault brake source */
 #define PWM_FB_EDGE_SYS_CSS                      (PWM_BRKCTL0_1_SYSEBEN_Msk | PWM_FAILBRK_CSSBRKEN_Msk)    /*!< System fail condition: clock security system detection as edge-detect fault brake source */
 #define PWM_FB_EDGE_SYS_BOD                      (PWM_BRKCTL0_1_SYSEBEN_Msk | PWM_FAILBRK_BODBRKEN_Msk)    /*!< System fail condition: brown-out detection as edge-detect fault brake source */
-#define PWM_FB_EDGE_SYS_RAM                      (PWM_BRKCTL0_1_SYSEBEN_Msk | PWM_FAILBRK_RAMBRKEN_Msk)    /*!< System fail condition: SRAM parity error detection as edge-detect fault brake source */
 #define PWM_FB_EDGE_SYS_COR                      (PWM_BRKCTL0_1_SYSEBEN_Msk | PWM_FAILBRK_CORBRKEN_Msk)    /*!< System fail condition: core lockup detection as edge-detect fault brake source */
 
 #define PWM_FB_LEVEL_BKP0                        (PWM_BRKCTL0_1_BRKP0LEN_Msk)    /*!< BKP0 pin as level-detect fault brake source */
 #define PWM_FB_LEVEL_BKP1                        (PWM_BRKCTL0_1_BRKP1LEN_Msk)    /*!< BKP1 pin as level-detect fault brake source */
 #define PWM_FB_LEVEL_SYS_CSS                     (PWM_BRKCTL0_1_SYSLBEN_Msk | PWM_FAILBRK_CSSBRKEN_Msk)    /*!< System fail condition: clock security system detection as level-detect fault brake source */
 #define PWM_FB_LEVEL_SYS_BOD                     (PWM_BRKCTL0_1_SYSLBEN_Msk | PWM_FAILBRK_BODBRKEN_Msk)    /*!< System fail condition: brown-out detection as level-detect fault brake source */
-#define PWM_FB_LEVEL_SYS_RAM                     (PWM_BRKCTL0_1_SYSLBEN_Msk | PWM_FAILBRK_RAMBRKEN_Msk)    /*!< System fail condition: SRAM parity error detection as level-detect fault brake source */
 #define PWM_FB_LEVEL_SYS_COR                     (PWM_BRKCTL0_1_SYSLBEN_Msk | PWM_FAILBRK_CORBRKEN_Msk)    /*!< System fail condition: core lockup detection as level-detect fault brake source */
 
 #define PWM_FB_EDGE                              (0UL)    /*!< edge-detect fault brake */
