@@ -13,7 +13,7 @@
 
 
 #define PLLCON_SETTING          CLK_PLLCON_48MHz_HXT
-#define PLL_CLOCK               480000000
+#define PLL_CLOCK               48000000
 #define HCLK_DIV                        1
 
 #define GPIO_SETMODE(port, pin, u32Mode) port->MODE = (port->MODE & ~(0x3ul << (pin << 1))) | (u32Mode << (pin << 1));
