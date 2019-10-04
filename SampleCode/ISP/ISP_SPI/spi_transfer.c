@@ -31,8 +31,8 @@ void SPI_Init(void)
     SPI0->DIVIDER = 0UL;
     /* Set TX FIFO threshold and enable FIFO mode. */
     SPI0->FIFO_CTL = (SPI0->FIFO_CTL & ~(SPI_FIFO_CTL_TX_THRESHOLD_Msk | SPI_FIFO_CTL_RX_THRESHOLD_Msk)) |
-                    (4 << SPI_FIFO_CTL_TX_THRESHOLD_Pos) |
-                    (4 << SPI_FIFO_CTL_RX_THRESHOLD_Pos);
+                     (4 << SPI_FIFO_CTL_TX_THRESHOLD_Pos) |
+                     (4 << SPI_FIFO_CTL_RX_THRESHOLD_Pos);
     SPI_WRITE_TX(SPI0, 0xFFFFFFFF);    /* Dummy Write to prevent TX under run */
 }
 
