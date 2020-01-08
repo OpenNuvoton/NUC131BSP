@@ -44,12 +44,11 @@ void ADC_Open(ADC_T *adc,
               uint32_t u32OpMode,
               uint32_t u32ChMask)
 {
+    (adc)->ADCR = ((adc)->ADCR & (~(ADC_ADCR_DIFFEN_Msk | ADC_ADCR_ADMD_Msk))) | \
+                (u32InputMode) | \
+                (u32OpMode);
 
-    ADC->ADCR = (ADC->ADCR & (~(ADC_ADCR_DIFFEN_Msk | ADC_ADCR_ADMD_Msk))) | \
-                u32InputMode | \
-                u32OpMode;
-
-    ADC->ADCHER  = (ADC->ADCHER & ~ADC_ADCHER_CHEN_Msk) | (u32ChMask);
+    (adc)->ADCHER = ((adc)->ADCHER & ~ADC_ADCHER_CHEN_Msk) | (u32ChMask);
 
     return;
 }
@@ -62,7 +61,7 @@ void ADC_Open(ADC_T *adc,
   */
 void ADC_Close(ADC_T *adc)
 {
-    ADC->ADCR &= (~ADC_ADCR_ADEN_Msk);
+    (adc)->ADCR &= (~ADC_ADCR_ADEN_Msk);
     return;
 }
 
@@ -84,9 +83,9 @@ void ADC_EnableHWTrigger(ADC_T *adc,
                          uint32_t u32Source,
                          uint32_t u32Param)
 {
-    ADC->ADCR &= ~(ADC_ADCR_TRGS_Msk | ADC_ADCR_TRGCOND_Msk | ADC_ADCR_TRGEN_Msk);
+    (adc)->ADCR &= ~(ADC_ADCR_TRGS_Msk | ADC_ADCR_TRGCOND_Msk | ADC_ADCR_TRGEN_Msk);
 
-    ADC->ADCR |= u32Source | u32Param | ADC_ADCR_TRGEN_Msk;
+    (adc)->ADCR |= (u32Source) | (u32Param) | ADC_ADCR_TRGEN_Msk;
 
     return;
 }
@@ -99,7 +98,7 @@ void ADC_EnableHWTrigger(ADC_T *adc,
   */
 void ADC_DisableHWTrigger(ADC_T *adc)
 {
-    ADC->ADCR &= ~(ADC_ADCR_TRGS_Msk | ADC_ADCR_TRGCOND_Msk | ADC_ADCR_TRGEN_Msk);
+    (adc)->ADCR &= ~(ADC_ADCR_TRGS_Msk | ADC_ADCR_TRGCOND_Msk | ADC_ADCR_TRGEN_Msk);
     return;
 }
 
@@ -120,12 +119,12 @@ void ADC_DisableHWTrigger(ADC_T *adc)
   */
 void ADC_EnableInt(ADC_T *adc, uint32_t u32Mask)
 {
-    if(u32Mask & ADC_ADF_INT)
-        ADC->ADCR |= ADC_ADCR_ADIE_Msk;
-    if(u32Mask & ADC_CMP0_INT)
-        ADC->ADCMPR[0] |= ADC_ADCMPR_CMPIE_Msk;
-    if(u32Mask & ADC_CMP1_INT)
-        ADC->ADCMPR[1] |= ADC_ADCMPR_CMPIE_Msk;
+    if((u32Mask) & ADC_ADF_INT)
+        (adc)->ADCR |= ADC_ADCR_ADIE_Msk;
+    if((u32Mask) & ADC_CMP0_INT)
+        (adc)->ADCMPR[0] |= ADC_ADCMPR_CMPIE_Msk;
+    if((u32Mask) & ADC_CMP1_INT)
+        (adc)->ADCMPR[1] |= ADC_ADCMPR_CMPIE_Msk;
 
     return;
 }
@@ -144,12 +143,12 @@ void ADC_EnableInt(ADC_T *adc, uint32_t u32Mask)
   */
 void ADC_DisableInt(ADC_T *adc, uint32_t u32Mask)
 {
-    if(u32Mask & ADC_ADF_INT)
-        ADC->ADCR &= ~ADC_ADCR_ADIE_Msk;
-    if(u32Mask & ADC_CMP0_INT)
-        ADC->ADCMPR[0] &= ~ADC_ADCMPR_CMPIE_Msk;
-    if(u32Mask & ADC_CMP1_INT)
-        ADC->ADCMPR[1] &= ~ADC_ADCMPR_CMPIE_Msk;
+    if((u32Mask) & ADC_ADF_INT)
+        (adc)->ADCR &= ~ADC_ADCR_ADIE_Msk;
+    if((u32Mask) & ADC_CMP0_INT)
+        (adc)->ADCMPR[0] &= ~ADC_ADCMPR_CMPIE_Msk;
+    if((u32Mask) & ADC_CMP1_INT)
+        (adc)->ADCMPR[1] &= ~ADC_ADCMPR_CMPIE_Msk;
 
     return;
 }
