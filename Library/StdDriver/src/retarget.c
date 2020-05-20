@@ -6,6 +6,8 @@
  * @brief    NUC131 Debug Port and Semihost Setting Source File
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
  *
  ******************************************************************************/

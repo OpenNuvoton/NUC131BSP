@@ -6,6 +6,8 @@
  * @brief    NUC131 Series UART Interface Controller Driver Header File
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2011 Nuvoton Technology Corp. All rights reserved.
  *
  ******************************************************************************/

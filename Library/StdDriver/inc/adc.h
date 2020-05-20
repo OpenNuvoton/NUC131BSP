@@ -6,6 +6,8 @@
  * @brief    NUC131 Series ADC Driver Header File
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
  *
  ******************************************************************************/
