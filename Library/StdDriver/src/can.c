@@ -1,14 +1,12 @@
 /**************************************************************************//**
  * @file     adc.c
- * @version  V3.00
+ * @version  V3.01
  * $Revision: 10 $
  * $Date: 2/19/16 11:49a $
  * @brief    NUC131 series ADC driver source file
  *
- * @note
- * SPDX-License-Identifier: Apache-2.0
- *
- * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include "NUC131.h"
 
