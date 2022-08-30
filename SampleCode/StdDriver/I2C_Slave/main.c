@@ -13,8 +13,7 @@
 #include <stdio.h>
 #include "NUC131.h"
 
-#define PLLCON_SETTING      CLK_PLLCON_50MHz_HXT
-#define PLL_CLOCK           50000000
+#define PLL_CLOCK       72000000
 
 static uint32_t slave_buff_addr;
 static uint8_t g_au8SlvData[256];
@@ -54,7 +53,7 @@ void I2C0_IRQHandler(void)
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
-/*  I2C TRx Callback Function                                                                               */
+/*  I2C TRx Callback Function                                                                              */
 /*---------------------------------------------------------------------------------------------------------*/
 void I2C_SlaveTRx(uint32_t u32Status)
 {
@@ -226,7 +225,7 @@ void I2C0_Close(void)
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
-    uint32_t i;
+    uint32_t i, u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -245,11 +244,11 @@ int32_t main(void)
         and Byte Read operations, and check if the read data is equal to the programmed data.
     */
 
-    printf("+------------------------------------------------------_-+\n");
+    printf("+--------------------------------------------------------+\n");
     printf("|  NUC131 I2C Driver Sample Code(Slave) for access Slave |\n");
     printf("|                                                        |\n");
     printf("| I2C Master (I2C0) <---> I2C Slave(I2C0)                |\n");
-    printf("+-------------------------------------------------------_+\n");
+    printf("+--------------------------------------------------------+\n");
 
     printf("Configure I2C0 as a slave.\n");
     printf("The I/O connection for I2C0:\n");
@@ -287,12 +286,14 @@ int32_t main(void)
             g_u8TimeoutFlag = 0;
             g_u8SlvTRxAbortFlag = 1;
         }
-        /* When I2C abort, clear SI to enter non-addressed SLV mode*/
+        /* When I2C abort, clear SI to enter non-addressed SLV mode */
         if(g_u8SlvTRxAbortFlag)
         {
             g_u8SlvTRxAbortFlag = 0;
+            u32TimeOutCnt = I2C_TIMEOUT;
+            while(I2C0->I2CON & I2C_I2CON_SI_Msk)
+                if(--u32TimeOutCnt == 0) break;
 
-            while(I2C0->I2CON & I2C_I2CON_SI_Msk);
             printf("I2C Slave re-start. status[0x%x]\n", I2C0->I2CSTATUS);
             I2C_SET_CONTROL_REG(I2C0, I2C_I2CON_SI_AA);
         }

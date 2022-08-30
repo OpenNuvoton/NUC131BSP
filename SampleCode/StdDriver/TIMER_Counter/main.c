@@ -71,7 +71,7 @@ void SYS_Init(void)
     /* Waiting for clock ready */
     CLK_WaitClockReady(CLK_CLKSTATUS_XTL12M_STB_Msk);
 
-    /* Set core clock as PLL_CLOCK from PLL and SysTick source to HCLK/2*/
+    /* Set core clock as PLL_CLOCK from PLL and SysTick source to HCLK/2 */
     CLK_SetCoreClock(PLL_CLOCK);
     CLK_SetSysTickClockSrc(CLK_CLKSEL0_STCLK_S_HCLK_DIV2);
 
@@ -109,6 +109,7 @@ void UART0_Init(void)
 int main(void)
 {
     volatile uint32_t u32InitCount;
+    uint32_t u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -159,10 +160,7 @@ int main(void)
     if(TIMER_GetCounter(TIMER0) != 0)
     {
         printf("Default counter value is not 0. (%d)\n", TIMER_GetCounter(TIMER0));
-
-        /* Stop Timer0 counting */
-        TIMER0->TCSR = 0;
-        while(1);
+        goto lexit;
     }
 
     printf("Start to check Timer0 counter input value ......\n\n");
@@ -171,25 +169,31 @@ int main(void)
     GenerateEventCounterSource(0, 8, 1);
 
     /* To check if counter value of Timer0 should be 1 */
-    while(TIMER_GetCounter(TIMER0) == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(TIMER_GetCounter(TIMER0) == 0)
+        if(--u32TimeOutCnt == 0) break;
     if(TIMER_GetCounter(TIMER0) != 1)
     {
         printf("Get unexpected counter value. (%d)\n", TIMER_GetCounter(TIMER0));
-
-        /* Stop Timer0 counting */
-        TIMER0->TCSR = 0;
-        while(1);
+        goto lexit;
     }
 
     /* To generate remains counts to TM0 pin */
     GenerateEventCounterSource(0, 8, (56789 - 1));
 
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
     while(1)
     {
         if(g_au32TMRINTCount[0] == 1)
         {
             printf("# Timer0 interrupt event occurred.\n");
             break;
+        }
+
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for Timer0 interrupt time-out!\n");
+            goto lexit;
         }
     }
 
@@ -202,6 +206,8 @@ int main(void)
     {
         printf("FAIL.\n");
     }
+
+lexit:
 
     /* Stop Timer0 counting */
     TIMER_Close(TIMER0);

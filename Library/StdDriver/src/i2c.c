@@ -87,7 +87,7 @@ void I2C_Close(I2C_T *i2c)
     *
   * @return     None
   *
-  * @details    When Time-out flag will be set, use this function to clear I2C Bus Time-out Counter flag .
+  * @details    When Time-out flag will be set, use this function to clear I2C Bus Time-out Counter flag.
     *
   */
 void I2C_ClearTimeoutFlag(I2C_T *i2c)
@@ -383,7 +383,7 @@ void I2C_DisableWakeup(I2C_T *i2c)
 
 /*@}*/ /* end of group NUC131_I2C_EXPORTED_FUNCTIONS */
 
-/*@}*/ /* end of group NU131_I2C_Driver */
+/*@}*/ /* end of group NUC131_I2C_Driver */
 
 /*@}*/ /* end of group NUC131_Device_Driver */
 

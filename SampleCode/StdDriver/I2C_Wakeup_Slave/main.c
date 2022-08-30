@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include "NUC131.h"
 
-#define PLLCON_SETTING      CLK_PLLCON_50MHz_HXT
 #define PLL_CLOCK           50000000
 
 uint32_t slave_buff_addr;
@@ -62,7 +61,7 @@ void I2C0_IRQHandler(void)
     }
 }
 /*---------------------------------------------------------------------------------------------------------*/
-/*  Power Wake-up IRQ Handler                                                                                       */
+/*  Power Wake-up IRQ Handler                                                                              */
 /*---------------------------------------------------------------------------------------------------------*/
 void PWRWU_IRQHandler(void)
 {
@@ -77,7 +76,7 @@ void PWRWU_IRQHandler(void)
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
-/*  I2C Slave Transmit/Receive Callback Function                                                                               */
+/*  I2C Slave Transmit/Receive Callback Function                                                           */
 /*---------------------------------------------------------------------------------------------------------*/
 void I2C_SlaveTRx(uint32_t u32Status)
 {
@@ -166,7 +165,6 @@ void SYS_Init(void)
     /* Select UART module clock source */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART_S_HXT, CLK_CLKDIV_UART(1));
 
-
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
     /*---------------------------------------------------------------------------------------------------------*/
@@ -180,7 +178,7 @@ void SYS_Init(void)
     SYS->GPA_MFP |= SYS_GPA_MFP_PA8_I2C0_SDA | SYS_GPA_MFP_PA9_I2C0_SCL;
 }
 
-void UART0_Init()
+void UART0_Init(void)
 {
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init UART                                                                                               */
@@ -233,7 +231,7 @@ void I2C0_Close(void)
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
-    uint32_t i;
+    uint32_t i, u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -245,21 +243,21 @@ int32_t main(void)
     UART0_Init();
 
     /* Lock protected registers */
-    SYS_LockReg();;
+    SYS_LockReg();
 
     /*
         This sample code is I2C SLAVE mode and it simulates EEPROM function
     */
     printf("\n");
-    printf("+----------------------------------------------------------------------+\n");
+    printf("+-----------------------------------------------------------------------+\n");
     printf("| NUC131 I2C Driver Sample Code (Slave) for wake-up & access Slave test |\n");
-    printf("|                                                                      |\n");
-    printf("| I2C Master (I2C0) <---> I2C Slave(I2C0)                              |\n");
-    printf("+----------------------------------------------------------------------+\n");
+    printf("|                                                                       |\n");
+    printf("| I2C Master (I2C0) <---> I2C Slave(I2C0)                               |\n");
+    printf("+-----------------------------------------------------------------------+\n");
 
     printf("Configure I2C0 as a slave.\n");
     printf("The I/O connection for I2C0:\n");
-    printf("I2C0_SDA(P3.4), I2C0_SCL(P3.5)\n");
+    printf("I2C0_SDA(PA.8), I2C0_SCL(PA.9)\n");
 
     /* Init I2C0 */
     I2C0_Init();
@@ -298,8 +296,11 @@ int32_t main(void)
     printf("Enter PD 0x%x 0x%x\n", I2C0->I2CON , I2C0->I2CSTATUS);
     printf("\n");
     printf("CHIP enter power down status.\n");
-    /* Waiting for UART printf finish*/
-    while(((UART0->FSR) & UART_FSR_TE_FLAG_Msk) == 0);
+
+    /* Waiting for UART printf finish */
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(((UART0->FSR) & UART_FSR_TE_FLAG_Msk) == 0)
+        if(--u32TimeOutCnt == 0) break;
 
     if(((I2C0->I2CON)&I2C_I2CON_SI_Msk) != 0)
     {
@@ -313,8 +314,18 @@ int32_t main(void)
     __NOP();
     __NOP();
 
-    while((g_u8SlvPWRDNWK & g_u8SlvI2CWK) == 0);
-    printf("Power-down Wake-up INT 0x%x\n", ((CLK->PWRCON) & CLK_PWRCON_PD_WU_STS_Msk));
+    u32TimeOutCnt = I2C_TIMEOUT;
+    while((g_u8SlvPWRDNWK & g_u8SlvI2CWK) == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for system or I2C interrupt time-out!\n");
+            break;
+        }
+    }
+
+    /* Wake-up Interrupt Message */
+    printf("Power-down Wake-up INT 0x%lx\n", ((CLK->PWRCON) & CLK_PWRCON_PD_WU_STS_Msk));
     printf("I2C0 WAKE INT 0x%x\n", I2C0->I2CWKUPSTS);
 
     /* Disable power wake-up interrupt */
@@ -332,6 +343,3 @@ int32_t main(void)
 
     while(1);
 }
-
-
-

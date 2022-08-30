@@ -65,6 +65,8 @@ void ClrIntPendingGBit(CAN_T *tCAN, uint8_t u32MsgNum)
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t ReadMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, STR_CANMSG_T* pCanMsg)
 {
+    uint32_t u32TimeOutCnt;
+
     if(!CAN_GET_NEW_DATA_IN_BIT(tCAN, u8MsgObj))
     {
         return FALSE;
@@ -72,7 +74,7 @@ int32_t ReadMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, STR_CANMSG_T* pCanMsg)
 
     tCAN->STATUS &= (~CAN_STATUS_RXOK_Msk);
 
-    /* read the message contents*/
+    /* read the message contents */
     tCAN->IF[1].CMASK = CAN_IF_CMASK_MASK_Msk
                         | CAN_IF_CMASK_ARB_Msk
                         | CAN_IF_CMASK_CONTROL_Msk
@@ -83,20 +85,26 @@ int32_t ReadMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, STR_CANMSG_T* pCanMsg)
 
     tCAN->IF[1].CREQ = 1 + u8MsgObj;
 
+    /* Wait */
+    u32TimeOutCnt = CAN_TIMEOUT;
     while(tCAN->IF[1].CREQ & CAN_IF_CREQ_BUSY_Msk)
     {
-        /*Wait*/
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for CAN_IF1_CREQ register busy flag is cleared time-out!\n");
+            return FALSE;
+        }
     }
 
     if((tCAN->IF[1].ARB2 & CAN_IF_ARB2_XTD_Msk) == 0)
     {
-        /* standard ID*/
+        /* standard ID */
         pCanMsg->IdType = CAN_STD_ID;
         pCanMsg->Id     = (tCAN->IF[1].ARB2 & CAN_IF_ARB2_ID_Msk) >> 2;
     }
     else
     {
-        /* extended ID*/
+        /* extended ID */
         pCanMsg->IdType = CAN_EXT_ID;
         pCanMsg->Id  = (((tCAN->IF[1].ARB2) & 0x1FFF) << 16) | tCAN->IF[1].ARB1;
     }
@@ -261,11 +269,11 @@ void SYS_Init(void)
     CLK->CLKSEL0 |= CLK_CLKSEL0_HCLK_S_PLL;
 
     /* Update System Core Clock */
-    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
+    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CyclesPerUs automatically. */
     //SystemCoreClockUpdate();
     PllClock        = PLL_CLOCK;            // PLL
     SystemCoreClock = PLL_CLOCK / 1;        // HCLK
-    CyclesPerUs     = PLL_CLOCK / 1000000;  // For SYS_SysTickDelay()
+    CyclesPerUs     = PLL_CLOCK / 1000000;  // For CLK_SysTickDelay()
 
     /* Enable UART module clock */
     CLK->APBCLK |= CLK_APBCLK_UART0_EN_Msk;
@@ -377,6 +385,7 @@ uint32_t CANInit(CAN_T *tCAN, uint32_t u32BaudRate)
     uint8_t u8Tseg1, u8Tseg2;
     uint32_t u32Brp;
     uint32_t u32Value;
+    uint32_t u32TimeOutCnt;
 
     /* Set the CAN to enter initialization mode and enable access bit timing register */
     tCAN->CON |= CAN_CON_INIT_Msk;
@@ -417,7 +426,16 @@ uint32_t CANInit(CAN_T *tCAN, uint32_t u32BaudRate)
 
     /* Set the CAN to leave initialization mode */
     tCAN->CON &= (~(CAN_CON_INIT_Msk | CAN_CON_CCE_Msk));
-    while(tCAN->CON & CAN_CON_INIT_Msk); /* Check INIT bit is released */
+    /* Check INIT bit is released */
+    u32TimeOutCnt = CAN_TIMEOUT;
+    while(tCAN->CON & CAN_CON_INIT_Msk)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for CAN to leave initialization mode time-out!\n");
+            return 0;
+        }
+    }
 
     return (GetCANBitRate(tCAN));
 
@@ -440,7 +458,7 @@ void BaudRateCheck(uint32_t u32BaudRate, uint32_t u32RealBaudRate)
         printf("where: Fin: System clock freq.(Hz)\n");
         printf("       BRP: The baud rate prescale. It is composed of BRP (CAN_BTIME[5:0]) and BRPE (CAN_BRPE[3:0]).\n");
         printf("       Tseg1: Time Segment before the sample point. You can set tseg1 (CAN_BTIME[11:8]).\n");
-        printf("       Tseg2: Time Segment ater the sample point. You can set tseg2 (CAN_BTIME[14:12]).\n");
+        printf("       Tseg2: Time Segment after the sample point. You can set tseg2 (CAN_BTIME[14:12]).\n");
 
         if(SystemCoreClock % u32BaudRate != 0)
             printf("\nThe BPR does not calculate, the Fin must be a multiple of the CAN baud-rate.\n");
@@ -631,7 +649,7 @@ int32_t SetRxMsgObj(CAN_T  *tCAN, uint8_t u8MsgObj, uint8_t u8idType, uint32_t u
 }
 
 /*----------------------------------------------------------------------------*/
-/*  Set the Mask Message Function                                                                       */
+/*  Set the Mask Message Function                                             */
 /*----------------------------------------------------------------------------*/
 void SetMaskFilter(CAN_T *tCAN)
 {

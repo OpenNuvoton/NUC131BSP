@@ -23,10 +23,10 @@ uint8_t volatile bUartDataReady = 0;
 uint8_t volatile bufhead = 0;
 
 
-/* please check "targetdev.h" for chip specifc define option */
+/* please check "targetdev.h" for chip specific define option */
 
 /*---------------------------------------------------------------------------------------------------------*/
-/* ISR to handle UART Channel 0 interrupt event                                                            */
+/* ISR to handle UART Channel interrupt event                                                              */
 /*---------------------------------------------------------------------------------------------------------*/
 void UART_T_IRQHandler(void)
 {
@@ -41,7 +41,7 @@ void UART_T_IRQHandler(void)
         }
     }
 
-    /* Reset data buffer index */    
+    /* Reset data buffer index */
     if (bufhead == MAX_PKT_SIZE) {
         bUartDataReady = TRUE;
         bufhead = 0;
@@ -55,13 +55,13 @@ void PutString(void)
 {
     uint32_t i;
 
-    /* UART send response to master */    
+    /* UART send response to master */
     for (i = 0; i < MAX_PKT_SIZE; i++) {
         
         /* Wait for TX not full */
         while ((UART_T->FSR & UART_FSR_TX_FULL_Msk));
 
-        /* UART send data */ 
+        /* UART send data */
         UART_T->THR = response_buff[i];
     }
 }
@@ -82,6 +82,7 @@ void UART_Init()
     UART_T->BAUD = (UART_BAUD_MODE0 | UART_BAUD_MODE0_DIVIDER(__HIRC, 115200));
     /* Set time-out interrupt comparator */
     UART_T->TOR = (UART_T->TOR & ~UART_TOR_TOIC_Msk) | (0x40);
+    /* Set UART NVIC */
     NVIC_SetPriority(UART_T_IRQn, 2);
     NVIC_EnableIRQ(UART_T_IRQn);
     /* Enable tim-out counter, Rx tim-out interrupt and Rx ready interrupt */
