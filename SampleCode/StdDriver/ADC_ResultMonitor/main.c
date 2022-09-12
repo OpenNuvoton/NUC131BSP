@@ -110,6 +110,8 @@ void UART0_Init()
 /*---------------------------------------------------------------------------------------------------------*/
 void AdcResultMonitorTest()
 {
+    uint32_t u32TimeOutCnt;
+
     printf("\n");
     printf("+----------------------------------------------------------------------+\n");
     printf("|           ADC compare function (result monitor) sample code          |\n");
@@ -152,7 +154,15 @@ void AdcResultMonitorTest()
     ADC_START_CONV(ADC);
 
     /* Wait ADC compare interrupt */
-    while((g_u32AdcCmp0IntFlag == 0) && (g_u32AdcCmp1IntFlag == 0));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while((g_u32AdcCmp0IntFlag == 0) && (g_u32AdcCmp1IntFlag == 0))
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for ADC compare interrupt time-out!\n");
+            return;
+        }
+    }
 
     /* Stop A/D conversion */
     ADC_STOP_CONV(ADC);
@@ -195,7 +205,7 @@ void ADC_IRQHandler(void)
 /* MAIN function                                                                                           */
 /*---------------------------------------------------------------------------------------------------------*/
 
-int main(void)
+int32_t main(void)
 {
 
     /* Unlock protected registers */

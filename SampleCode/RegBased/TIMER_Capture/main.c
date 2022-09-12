@@ -79,13 +79,13 @@ void SYS_Init(void)
                    CLK_CLKSEL1_TMR0_S_HCLK | CLK_CLKSEL1_TMR1_S_HXT | CLK_CLKSEL1_TMR3_S_HXT;
 
     /* Update System Core Clock */
-    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
+    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CyclesPerUs automatically. */
     SystemCoreClockUpdate();
 
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
     /*---------------------------------------------------------------------------------------------------------*/
-    /* Set PB multi-function pins for UART0 RXD, TXD */
+    /* Set PB multi-function pins for UART0 RXD and TXD */
     SYS->GPB_MFP &= ~(SYS_GPB_MFP_PB0_Msk | SYS_GPB_MFP_PB1_Msk);
     SYS->GPB_MFP |= (SYS_GPB_MFP_PB0_UART0_RXD | SYS_GPB_MFP_PB1_UART0_TXD);
 
@@ -165,7 +165,7 @@ int main(void)
     /* Enable Timer0 NVIC */
     NVIC_EnableIRQ(TMR0_IRQn);
 
-    /* Start Timer2 counting and output TM2 frequency to 500 Hz*/
+    /* Start Timer2 counting and output TM2 frequency to 500 Hz */
     TIMER2->TCMPR = (__HXT / 1000);
     TIMER2->TCSR = TIMER_TCSR_CEN_Msk | TIMER_TOGGLE_MODE;
 
@@ -192,18 +192,20 @@ int main(void)
             if(u32CAPDiff != 500)
             {
                 printf("*** FAIL ***\n");
-                while(1);
+                goto lexit;
             }
             u32InitCount = g_au32TMRINTCount[0];
         }
     }
 
+    printf("*** PASS ***\n");
+
+lexit:
+
     /* Stop Timer0, Timer2 and Timer3 counting */
     TIMER0->TCSR = 0;
     TIMER2->TCSR = 0;
     TIMER3->TCSR = 0;
-
-    printf("*** PASS ***\n");
 
     while(1);
 }

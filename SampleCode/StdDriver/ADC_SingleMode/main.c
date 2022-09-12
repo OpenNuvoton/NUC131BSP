@@ -79,7 +79,6 @@ void SYS_Init(void)
     SYS->GPA_MFP &= ~(SYS_GPA_MFP_PA0_Msk | SYS_GPA_MFP_PA1_Msk | SYS_GPA_MFP_PA2_Msk | SYS_GPA_MFP_PA3_Msk) ;
     SYS->GPA_MFP |= SYS_GPA_MFP_PA0_ADC0 | SYS_GPA_MFP_PA1_ADC1 | SYS_GPA_MFP_PA2_ADC2 | SYS_GPA_MFP_PA3_ADC3 ;
 
-
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -110,6 +109,7 @@ void AdcSingleModeTest()
 {
     uint8_t  u8Option;
     int32_t  i32ConversionData;
+    uint32_t u32TimeOutCnt;
 
     printf("\n");
     printf("+----------------------------------------------------------------------+\n");
@@ -144,7 +144,15 @@ void AdcSingleModeTest()
             ADC_START_CONV(ADC);
 
             /* Wait ADC interrupt (g_u32AdcIntFlag will be set at IRQ_Handler function)*/
-            while(g_u32AdcIntFlag == 0);
+            u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+            while(g_u32AdcIntFlag == 0)
+            {
+                if(--u32TimeOutCnt == 0)
+                {
+                    printf("Wait for ADC interrupt time-out!\n");
+                    return;
+                }
+            }
 
             /* Disable the ADC interrupt */
             ADC_DisableInt(ADC, ADC_ADF_INT);
@@ -174,7 +182,15 @@ void AdcSingleModeTest()
             ADC_START_CONV(ADC);
 
             /* Wait ADC interrupt (g_u32AdcIntFlag will be set at IRQ_Handler function)*/
-            while(g_u32AdcIntFlag == 0);
+            u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+            while(g_u32AdcIntFlag == 0)
+            {
+                if(--u32TimeOutCnt == 0)
+                {
+                    printf("Wait for ADC interrupt time-out!\n");
+                    return;
+                }
+            }
 
             /* Disable the ADC interrupt */
             ADC_DisableInt(ADC, ADC_ADF_INT);
@@ -204,7 +220,7 @@ void ADC_IRQHandler(void)
 /* MAIN function                                                                                           */
 /*---------------------------------------------------------------------------------------------------------*/
 
-int main(void)
+int32_t main(void)
 {
 
     /* Unlock protected registers */

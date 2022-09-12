@@ -59,7 +59,7 @@ void SYS_Init(void)
     /* Select UART module clock source */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART_S_HXT, CLK_CLKDIV_UART(1));
 
-    /* Select PWM01 module clock source */
+    /* Select PWM0 module clock source */
     CLK_SetModuleClock(PWM0_MODULE, CLK_CLKSEL3_PWM0_S_PCLK, 0);
 
     /* ADC clock source is 22.1184MHz, set divider to 7, ADC clock is 22.1184/7 MHz */
@@ -111,6 +111,8 @@ void UART0_Init()
 /*---------------------------------------------------------------------------------------------------------*/
 void ADC_PWMTrigTest_SingleOpMode()
 {
+    uint32_t u32TimeOutCnt;
+
     printf("\n<<< PWM trigger test (Single mode) >>>\n");
 
     /* Power on ADC module */
@@ -144,8 +146,25 @@ void ADC_PWMTrigTest_SingleOpMode()
     PWM_Start(PWM0, PWM_CH_0_MASK);
 
     /* wait for one cycle */
-    while(PWM_GetPeriodIntFlag(PWM0, 0) == 0);
-    while(PWM_GetZeroIntFlag(PWM0, 0) == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(PWM_GetPeriodIntFlag(PWM0, 0) == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for PWM period interrupt time-out!\n");
+            return;
+        }
+    }
+
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(PWM_GetZeroIntFlag(PWM0, 0) == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for PWM zero interrupt time-out!\n");
+            return;
+        }
+    }
     PWM_ClearPeriodIntFlag(PWM0, 0);
     PWM_ClearZeroIntFlag(PWM0, 0);
 
@@ -153,7 +172,15 @@ void ADC_PWMTrigTest_SingleOpMode()
     PWM_ForceStop(PWM0, PWM_CH_0_MASK);
 
     /* Wait conversion done */
-    while(!ADC_GET_INT_FLAG(ADC, ADC_ADF_INT));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(!ADC_GET_INT_FLAG(ADC, ADC_ADF_INT))
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for ADC conversion done time-out!\n");
+            return;
+        }
+    }
 
     /* Clear the ADC interrupt flag */
     ADC_CLR_INT_FLAG(ADC, ADC_ADF_INT);
@@ -162,8 +189,6 @@ void ADC_PWMTrigTest_SingleOpMode()
 
     /* Disable ADC */
     ADC_POWER_DOWN(ADC);
-
-    while(1);
 }
 
 

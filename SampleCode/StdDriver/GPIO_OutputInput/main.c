@@ -53,7 +53,7 @@ void SYS_Init(void)
 
 }
 
-void UART0_Init()
+void UART0_Init(void)
 {
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init UART                                                                                               */
@@ -68,7 +68,7 @@ void UART0_Init()
 /*---------------------------------------------------------------------------------------------------------*/
 /* MAIN function                                                                                           */
 /*---------------------------------------------------------------------------------------------------------*/
-int main(void)
+int32_t main(void)
 {
     int32_t i32Err;
 
@@ -89,7 +89,7 @@ int main(void)
     printf("|    PB.2(Output) and PC.1(Input) Sample Code     |\n");
     printf("+-------------------------------------------------+\n\n");
 
-    /* Configure PB.2 as Output mode and PE.1 as Input mode */
+    /* Configure PB.2 as Output mode and PC.1 as Input mode */
     GPIO_SetMode(PB, BIT2, GPIO_PMD_OUTPUT);
     GPIO_SetMode(PC, BIT1, GPIO_PMD_INPUT);
 

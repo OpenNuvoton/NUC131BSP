@@ -89,7 +89,7 @@ void SYS_Init(void)
     CLK->CLKSEL1 = CLK_CLKSEL1_UART_S_PLL | CLK_CLKSEL1_TMR0_S_HCLK;
 
     /* Update System Core Clock */
-    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
+    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CyclesPerUs automatically. */
     SystemCoreClockUpdate();
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -120,6 +120,7 @@ void UART0_Init(void)
 int main(void)
 {
     volatile uint32_t u32InitCount;
+    uint32_t u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -159,16 +160,23 @@ int main(void)
     /* Enable Timer0 external counter input function */
     TIMER0->TCMPR = 56789;
     TIMER0->TCSR = TIMER_TCSR_CEN_Msk | TIMER_TCSR_IE_Msk | TIMER_TCSR_CTB_Msk | TIMER_CONTINUOUS_MODE;
-    while(!(TIMER0->TCSR & TIMER_TCSR_CACT_Msk));
+
+    /* Wait for Timer0 counter active */
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(!(TIMER0->TCSR & TIMER_TCSR_CACT_Msk))
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for Timer0 counter active time-out!\n");
+            goto lexit;
+        }
+    }
 
     /* To check if counter value of Timer0 should be 0 while event counter mode is enabled */
     if(TIMER_GetCounter(TIMER0) != 0)
     {
         printf("Default counter value is not 0. (%d)\n", TIMER_GetCounter(TIMER0));
-
-        /* Stop Timer0 counting */
-        TIMER0->TCSR = 0;
-        while(1);
+        goto lexit;
     }
 
     printf("Start to check Timer0 counter input value ......\n\n");
@@ -177,25 +185,31 @@ int main(void)
     GenerateEventCounterSource(0, 8, 1);
 
     /* To check if counter value of Timer0 should be 1 */
-    while(TIMER_GetCounter(TIMER0) == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(TIMER_GetCounter(TIMER0) == 0)
+        if(--u32TimeOutCnt == 0) break;
     if(TIMER_GetCounter(TIMER0) != 1)
     {
         printf("Get unexpected counter value. (%d)\n", TIMER_GetCounter(TIMER0));
-
-        /* Stop Timer0 counting */
-        TIMER0->TCSR = 0;
-        while(1);
+        goto lexit;
     }
 
     /* To generate remains counts to TM0 pin */
     GenerateEventCounterSource(0, 8, (56789 - 1));
 
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
     while(1)
     {
         if(g_au32TMRINTCount[0] == 1)
         {
             printf("# Timer0 interrupt event occurred.\n");
             break;
+        }
+
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for Timer0 interrupt time-out!\n");
+            goto lexit;
         }
     }
 
@@ -208,6 +222,8 @@ int main(void)
     {
         printf("FAIL.\n");
     }
+
+lexit:
 
     /* Stop Timer0 counting */
     TIMER0->TCSR = 0;

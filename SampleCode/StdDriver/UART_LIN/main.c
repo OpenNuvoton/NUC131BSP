@@ -217,7 +217,7 @@ void LIN_MasterTestUsingLinCtlReg(uint32_t u32id, uint32_t u32ModeSel)
     }
     else if(u32ModeSel == MODE_ENHANCED)
     {
-        /* Send break+sync+ID and fill ID value to g_u8SendData[0]*/
+        /* Send break+sync+ID and fill ID value to g_u8SendData[0] */
         LIN_SendHeaderUsingLinCtlReg(u32id, UART_LIN_CTL_LIN_HEAD_SEL_BREAK_SYNC);
         /* Fill test pattern to g_u8SendData[1]~ g_u8SendData[8] */
         for(i = 0; i < 8; i++)
@@ -233,7 +233,7 @@ void LIN_MasterTestUsingLinCtlReg(uint32_t u32id, uint32_t u32ModeSel)
 /*---------------------------------------------------------------------------------------------------------*/
 uint8_t GetParityValue(uint32_t u32id)
 {
-    uint32_t u32Res = 0, ID[6], p_Bit[2] , mask = 0;
+    uint32_t u32Res = 0, ID[6], p_Bit[2], mask = 0;
 
     for(mask = 0; mask < 6; mask++)
         ID[mask] = (u32id & (1 << mask)) >> mask;
@@ -298,6 +298,8 @@ void LIN_SendHeader(uint32_t u32id)
 /*-------------------------------------------------------------------------------------------------------------------------------*/
 void LIN_SendHeaderUsingLinCtlReg(uint32_t u32id, uint32_t u32HeaderSel)
 {
+    uint32_t u32TimeOutCnt;
+
     g_i32pointer = 0 ;
 
     /* Switch back to LIN Function */
@@ -316,7 +318,15 @@ void LIN_SendHeaderUsingLinCtlReg(uint32_t u32id, uint32_t u32HeaderSel)
         /* LIN TX Send Header Enable */
         UART1->LIN_CTL |= UART_LIN_CTL_LIN_SHD_Msk;
         /* Wait until break field, sync field and ID field transfer completed */
-        while((UART1->LIN_CTL & UART_LIN_CTL_LIN_SHD_Msk) == UART_LIN_CTL_LIN_SHD_Msk);
+        u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+        while((UART1->LIN_CTL & UART_LIN_CTL_LIN_SHD_Msk) == UART_LIN_CTL_LIN_SHD_Msk)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for UART LIN header transfer completed time-out!\n");
+                return;
+            }
+        }
     }
     /* Set LIN 1. Header select as includes "break field" and "sync field".[UART_LIN_CTL_LIN_HEAD_SEL_BREAK_SYNC]
                2. Break/Sync Delimiter Length as 1 bit time [UART_LIN_CTL_LIN_BS_LEN(1)]
@@ -328,7 +338,15 @@ void LIN_SendHeaderUsingLinCtlReg(uint32_t u32id, uint32_t u32HeaderSel)
         /* LIN TX Send Header Enable */
         UART1->LIN_CTL |= UART_LIN_CTL_LIN_SHD_Msk;
         /* Wait until break field and sync field transfer completed */
-        while((UART1->LIN_CTL & UART_LIN_CTL_LIN_SHD_Msk) == UART_LIN_CTL_LIN_SHD_Msk);
+        u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+        while((UART1->LIN_CTL & UART_LIN_CTL_LIN_SHD_Msk) == UART_LIN_CTL_LIN_SHD_Msk)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for UART LIN header transfer completed time-out!\n");
+                return;
+            }
+        }
 
         /* Send ID field, g_u8SendData[0] is ID+parity field*/
         g_u8SendData[g_i32pointer++] = GetParityValue(u32id);   // ID+Parity Field
@@ -344,9 +362,17 @@ void LIN_SendHeaderUsingLinCtlReg(uint32_t u32id, uint32_t u32HeaderSel)
         /* LIN TX Send Header Enable */
         UART1->LIN_CTL |= UART_LIN_CTL_LIN_SHD_Msk;
         /* Wait until break field transfer completed */
-        while((UART1->LIN_CTL & UART_LIN_CTL_LIN_SHD_Msk) == UART_LIN_CTL_LIN_SHD_Msk);
+        u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+        while((UART1->LIN_CTL & UART_LIN_CTL_LIN_SHD_Msk) == UART_LIN_CTL_LIN_SHD_Msk)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for UART LIN header transfer completed time-out!\n");
+                return;
+            }
+        }
 
-        /* Send sync field and ID field*/
+        /* Send sync field and ID field */
         g_u8SendData[g_i32pointer++] = 0x55 ;                  // SYNC Field
         g_u8SendData[g_i32pointer++] = GetParityValue(u32id);   // ID+Parity Field
         UART_Write(UART1, g_u8SendData, 2);
@@ -464,7 +490,7 @@ void UART1_Init()
 /* MAIN function                                                                                           */
 /*---------------------------------------------------------------------------------------------------------*/
 
-int main(void)
+int32_t main(void)
 {
     uint32_t u32Item;
 

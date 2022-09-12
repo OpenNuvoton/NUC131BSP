@@ -21,22 +21,28 @@
 #define REVEIVE_MODE            (0)
 #define TRANSMIT_MODE           (1)
 
-void SYS_Init(void)
+int32_t SYS_Init(void)
 {
+    uint32_t u32TimeOutCnt;
+
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
     /* Enable Internal RC 22.1184MHz clock */
-    CLK->PWRCON |= (CLK_PWRCON_OSC22M_EN_Msk | CLK_PWRCON_XTL12M_EN_Msk);
+    CLK->PWRCON |= CLK_PWRCON_OSC22M_EN_Msk;
 
     /* Waiting for Internal RC clock ready */
-    while (!(CLK->CLKSTATUS & CLK_CLKSTATUS_OSC22M_STB_Msk));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while (!(CLK->CLKSTATUS & CLK_CLKSTATUS_OSC22M_STB_Msk))
+        if(--u32TimeOutCnt == 0) return -1;
 
     /* Set core clock as PLL_CLOCK from PLL */
     CLK->PLLCON = PLLCON_SETTING;
 
     /* Wait for PLL stable */
-    while (!(CLK->CLKSTATUS & CLK_CLKSTATUS_PLL_STB_Msk));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while (!(CLK->CLKSTATUS & CLK_CLKSTATUS_PLL_STB_Msk))
+        if(--u32TimeOutCnt == 0) return -1;
 
     /* Set HCLK as PLL */
     CLK->CLKSEL0 = (CLK->CLKSEL0 & (~CLK_CLKSEL0_HCLK_S_Msk)) | CLK_CLKSEL0_HCLK_S_PLL;
@@ -47,23 +53,25 @@ void SYS_Init(void)
     //SystemCoreClockUpdate();
     PllClock        = PLL_CLOCK;            // PLL
     SystemCoreClock = PLL_CLOCK / 1;        // HCLK
-    CyclesPerUs     = PLL_CLOCK / 1000000;  // For SYS_SysTickDelay()
-    
+    CyclesPerUs     = PLL_CLOCK / 1000000;  // For CLK_SysTickDelay()
+
     /* Enable UART module clock */
     CLK->APBCLK |= CLK_APBCLK_UART1_EN_Msk;
-    
+
     /* Select UART module clock source */
     CLK->CLKSEL1 = (CLK->CLKSEL1 & (~CLK_CLKSEL1_UART_S_Msk)) | CLK_CLKSEL1_UART_S_HIRC;
 
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
     /*---------------------------------------------------------------------------------------------------------*/
-    
+
     /* Set multi-function pins for UART1 RXD and TXD */
     PB->PMD = (PB->PMD & (~GPIO_PMD_PMD6_Msk)) | (GPIO_PMD_OUTPUT << GPIO_PMD_PMD6_Pos);
     nRTSPin = REVEIVE_MODE;
     SYS->GPB_MFP = (SYS->GPB_MFP & (~SYS_GPB_MFP_PB4_Msk)) | SYS_GPB_MFP_PB4_UART1_RXD;
-    SYS->GPB_MFP = (SYS->GPB_MFP & (~SYS_GPB_MFP_PB5_Msk)) | SYS_GPB_MFP_PB5_UART1_TXD;    
+    SYS->GPB_MFP = (SYS->GPB_MFP & (~SYS_GPB_MFP_PB5_Msk)) | SYS_GPB_MFP_PB5_UART1_TXD;
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -74,33 +82,33 @@ int main(void)
 {
     /* Unlock protected registers */
     SYS_UnlockReg();
-    
+
     /* Configure WDT */
     WDT->WTCR &= ~(WDT_WTCR_WTE_Msk | WDT_WTCR_DBGACK_WDT_Msk);
     WDT->WTCR |= (WDT_TIMEOUT_2POW18 | WDT_WTCR_WTR_Msk);
-    
+
     /* Init System, peripheral clock and multi-function I/O */
-    SYS_Init();
-    
-    /* Init UART to 115200-8n1 for print message */
+    if( SYS_Init() < 0 ) goto _APROM;
+
+    /* Init UART to 115200-8n1 */
     UART_Init();
-    
+
     /* Enable FMC ISP */
     CLK->AHBCLK |= CLK_AHBCLK_ISP_EN_Msk;
     FMC->ISPCON |= FMC_ISPCON_ISPEN_Msk;
-    
+
     /* Get data flash address and size */
     GetDataFlashInfo(&g_dataFlashAddr, &g_dataFlashSize);
-    
-    /* Set Systick time-out for 300ms */    
+
+    /* Set Systick time-out for 300ms */
     SysTick->LOAD = 300000 * CyclesPerUs;
-    SysTick->VAL   = (0x00);
+    SysTick->VAL  = (0x00);
     SysTick->CTRL = SysTick->CTRL | SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk; /* Use CPU clock */
 
     /* Wait for CMD_CONNECT command until Systick time-out */
     while (1) {
         
-        /* Wait for CMD_CONNECT command */ 
+        /* Wait for CMD_CONNECT command */
         if ((bufhead >= 4) || (bUartDataReady == TRUE)) {
             uint32_t lcmd;
             lcmd = inpw(uart_rcvbuf);
@@ -122,16 +130,16 @@ int main(void)
 
 _ISP:
 
-    /* Prase command from master and send response back */    
+    /* Prase command from master and send response back */
     while (1) {
         if (bUartDataReady == TRUE) {
             
             WDT->WTCR &= ~(WDT_WTCR_WTE_Msk | WDT_WTCR_DBGACK_WDT_Msk);
             WDT->WTCR |= (WDT_TIMEOUT_2POW18 | WDT_WTCR_WTR_Msk);
             
-            bUartDataReady = FALSE;;        /* Reset UART data ready flag */     
-            ParseCmd(uart_rcvbuf, 64);      /* Parse command from master */  
-            NVIC_DisableIRQ(UART_T_IRQn);    /* Disable NVIC */
+            bUartDataReady = FALSE;;        /* Reset UART data ready flag */
+            ParseCmd(uart_rcvbuf, 64);      /* Parse command from master */
+            NVIC_DisableIRQ(UART_T_IRQn);   /* Disable NVIC */
             nRTSPin = TRANSMIT_MODE;        /* Control RTS in transmit mode */
             PutString();                    /* Send response to master */
 
@@ -139,13 +147,13 @@ _ISP:
             while ((UART_T->FSR & UART_FSR_TE_FLAG_Msk) == 0);  
 
             nRTSPin = REVEIVE_MODE;         /* Control RTS in reveive mode */
-            NVIC_EnableIRQ(UART_T_IRQn);     /* Enable NVIC */            
-           
+            NVIC_EnableIRQ(UART_T_IRQn);    /* Enable NVIC */
+
         }
     }
 
 _APROM:
-    
+
     /* Reset system and boot from APROM */
     SYS->RSTSRC = (SYS_RSTSRC_RSTS_POR_Msk | SYS_RSTSRC_RSTS_RESET_Msk); /* Clear reset status flag */
     FMC->ISPCON = FMC->ISPCON & 0xFFFFFFFC;

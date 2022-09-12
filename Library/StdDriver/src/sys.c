@@ -46,7 +46,7 @@ extern "C"
   */
 void SYS_ClearResetSrc(uint32_t u32Src)
 {
-    SYS->RSTSRC |= u32Src;
+    SYS->RSTSRC = u32Src;
 }
 
 /**
@@ -165,7 +165,8 @@ void SYS_ResetModule(uint32_t u32ModuleIndex)
   *             - \ref SYS_BODCR_BOD_VL_2_7V
   *             - \ref SYS_BODCR_BOD_VL_2_2V
   * @return     None
-  * @details    This function configure Brown-out detector reset or interrupt mode, enable Brown-out function and set Brown-out voltage level.
+  * @details    This function configure Brown-out detector function.
+  *             It configure Brown-out detector reset or interrupt mode, enable Brown-out function and set Brown-out voltage level.
   *             The register write-protection function should be disabled before using this function.
   *
   */
