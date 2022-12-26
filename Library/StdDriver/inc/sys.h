@@ -1844,7 +1844,7 @@ static __INLINE void SYS_LockReg(void)
   */
 static __INLINE void SYS_UnlockReg(void)
 {
-    uint32_t u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    uint32_t u32TimeOutCnt = __HIRC;
 
     while(SYS->REGWRPROT != SYS_REGWRPROT_REGPROTDIS_Msk)
     {
