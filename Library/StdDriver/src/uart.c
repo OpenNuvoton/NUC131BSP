@@ -284,7 +284,7 @@ uint32_t UART_Read(UART_T* uart, uint8_t *pu8RxBuf, uint32_t u32ReadBytes)
         {
             u32delayno++;
             if(u32delayno >= 0x40000000)
-                return FALSE;
+                return u32Count;
         }
         pu8RxBuf[u32Count] = uart->RBR;    /* Get Data from UART RX  */
     }
