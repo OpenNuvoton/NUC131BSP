@@ -3,7 +3,7 @@
  * @version  V3.01
  * $Revision: 10 $
  * $Date: 2/19/16 11:49a $
- * @brief    NUC131 series ADC driver source file
+ * @brief    NUC131 series CAN driver source file
  *
  * @copyright SPDX-License-Identifier: Apache-2.0
  * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.

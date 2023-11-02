@@ -44,7 +44,7 @@ void CLK_DisableCKO(void)
   *             - \ref CLK_CLKSEL2_FRQDIV_S_HXT
   *             - \ref CLK_CLKSEL2_FRQDIV_S_HCLK
   *             - \ref CLK_CLKSEL2_FRQDIV_S_HIRC
-  * @param[in]  u32ClkDiv is divider output frequency selection.
+  * @param[in]  u32ClkDiv is divider output frequency selection. It could be 0~15.
   * @param[in]  u32ClkDivBy1En is frequency divided by one enable.
   * @return     None
   *

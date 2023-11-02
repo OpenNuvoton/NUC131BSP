@@ -198,7 +198,7 @@ int32_t main(void)
     u32Cfg = FMC_Read(FMC_CONFIG_BASE);
     if((u32Cfg & 0xc0) != 0x80)
     {
-        printf("Do you want to set to new IAP mode (APROM boot + LDROM) y/n?\n");
+        printf("Do you want to set to new IAP mode (APROM boot + LDROM) (y/n)?\n");
         if(getchar() == 'y')
         {
             FMC->ISPCON |= FMC_ISPCON_CFGUEN_Msk; /* Enable user configuration update */
@@ -222,7 +222,7 @@ int32_t main(void)
         }
     }
 
-    printf("Do you want to write LDROM code to 0x100000\n");
+    printf("Do you want to write LDROM code to 0x100000 (y/n)?\n");
 
     if(getchar() == 'y')
     {

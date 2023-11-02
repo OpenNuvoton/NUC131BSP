@@ -61,7 +61,7 @@ void RS485_HANDLE()
 
 #if (IS_USE_RS485NMM ==1) //RS485_NMM
             /* if address match, enable RX to receive data, otherwise to disable RX. */
-            /* In NMM mode,user can decide multi-address filter. In AAD mode, only one address can set */
+            /* In NMM mode, user can decide multi-address filter. In AAD mode, only one address can set */
             if((addr == MATCH_ADDRSS1) || (addr == MATCH_ADDRSS2))
             {
                 UART1->FCR &= ~UART_FCR_RX_DIS_Msk;  /* Enable RS485 RX */
@@ -189,11 +189,11 @@ void RS485_FunctionTest()
             2.The received byte, parity bit is '1' , is considered "ADDRESS".
             3.The received byte, parity bit is '0' , is considered "DATA".  (Default)
             4.AAD: The slave will ignore any data until ADDRESS match ADDR_MATCH value.
-              When RLS and RDA interrupt is happened,it means the ADDRESS is received.
+              When RLS and RDA interrupt is happened, it means the ADDRESS is received.
               Check if RS485_ADD_DETF is set and read UA_RBR to clear ADDRESS stored in RX FIFO.
 
               NMM: The slave will ignore data byte until disable RX_DIS.
-              When RLS and RDA interrupt is happened,it means the ADDRESS is received.
+              When RLS and RDA interrupt is happened, it means the ADDRESS is received.
               Check the ADDRESS is match or not by user in UART_IRQHandler.
               If the ADDRESS is match, clear RX_DIS bit to receive data byte.
               If the ADDRESS is not match, set RX_DIS bit to avoid data byte stored in FIFO.
@@ -233,8 +233,8 @@ void SYS_Init(void)
     CLK->CLKDIV = (CLK->CLKDIV & (~CLK_CLKDIV_HCLK_N_Msk)) | CLK_CLKDIV_HCLK(1);
 
     /* Set PLL to Power-down mode */
-    CLK->PLLCON |= CLK_PLLCON_PD_Msk;      
-    
+    CLK->PLLCON |= CLK_PLLCON_PD_Msk;
+
     /* Enable external XTAL 12MHz clock */
     CLK->PWRCON |= CLK_PWRCON_XTL12M_EN_Msk;
 

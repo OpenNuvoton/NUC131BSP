@@ -1819,7 +1819,7 @@ Example: If user want to set PA.0 as ADC0 and PA.1 as ADC1 in initial function,
   * @return     None
   * @details    This macro clear reset source flag.
   */
-#define SYS_CLEAR_RST_SOURCE(u32RstSrc) (SYS->RSTSRC = (u32RstSrc) )
+#define SYS_CLEAR_RST_SOURCE(u32RstSrc) (SYS->RSTSRC = (u32RstSrc))
 
 
 /**

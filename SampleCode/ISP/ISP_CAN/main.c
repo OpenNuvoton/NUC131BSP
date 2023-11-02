@@ -112,7 +112,7 @@ int32_t SYS_Init(void)
     CLK->CLKDIV &= ~CLK_CLKDIV_HCLK_N_Msk;
     CLK->CLKDIV |= CLK_CLKDIV_HCLK(HCLK_DIV);
     /* Update System Core Clock */
-    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
+    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CyclesPerUs automatically. */
     //SystemCoreClockUpdate();
     PllClock        = PLL_CLOCK;                        // PLL
     SystemCoreClock = PLL_CLOCK / HCLK_DIV;             // HCLK

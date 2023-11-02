@@ -285,7 +285,7 @@ void LIN_SendHeader(uint32_t u32id)
     g_i32pointer = 0 ;
 
     /* Set LIN operation mode, Tx mode and break field length is 12 bits */
-    UART_SelectLINMode(UART1, UART_ALT_CSR_LIN_TX_EN_Msk, 10);
+    UART_SelectLINMode(UART1, UART_ALT_CSR_LIN_TX_EN_Msk, 11);
 
     g_u8SendData[g_i32pointer++] = 0x55 ;                   // SYNC Field
     g_u8SendData[g_i32pointer++] = GetParityValue(u32id);   // ID+Parity Field

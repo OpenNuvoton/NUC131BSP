@@ -49,7 +49,7 @@ int32_t SYS_Init(void)
     CLK->CLKDIV = (CLK->CLKDIV & (~CLK_CLKDIV_HCLK_N_Msk)) | CLK_CLKDIV_HCLK(1);
 
     /* Update System Core Clock */
-    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
+    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CyclesPerUs automatically. */
     //SystemCoreClockUpdate();
     PllClock        = PLL_CLOCK;            // PLL
     SystemCoreClock = PLL_CLOCK / 1;        // HCLK
@@ -107,7 +107,7 @@ int main(void)
 
     /* Wait for CMD_CONNECT command until Systick time-out */
     while (1) {
-        
+
         /* Wait for CMD_CONNECT command */
         if ((bufhead >= 4) || (bUartDataReady == TRUE)) {
             uint32_t lcmd;
@@ -133,10 +133,10 @@ _ISP:
     /* Prase command from master and send response back */
     while (1) {
         if (bUartDataReady == TRUE) {
-            
+
             WDT->WTCR &= ~(WDT_WTCR_WTE_Msk | WDT_WTCR_DBGACK_WDT_Msk);
             WDT->WTCR |= (WDT_TIMEOUT_2POW18 | WDT_WTCR_WTR_Msk);
-            
+
             bUartDataReady = FALSE;;        /* Reset UART data ready flag */
             ParseCmd(uart_rcvbuf, 64);      /* Parse command from master */
             NVIC_DisableIRQ(UART_T_IRQn);   /* Disable NVIC */
@@ -144,7 +144,7 @@ _ISP:
             PutString();                    /* Send response to master */
 
             /* Wait for data transmission is finished */
-            while ((UART_T->FSR & UART_FSR_TE_FLAG_Msk) == 0);  
+            while ((UART_T->FSR & UART_FSR_TE_FLAG_Msk) == 0);
 
             nRTSPin = REVEIVE_MODE;         /* Control RTS in reveive mode */
             NVIC_EnableIRQ(UART_T_IRQn);    /* Enable NVIC */

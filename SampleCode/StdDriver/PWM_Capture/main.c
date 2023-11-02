@@ -187,7 +187,7 @@ void SYS_Init(void)
     SYS_ResetModule(PWM1_RST);
 
     /* Update System Core Clock */
-    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
+    /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CyclesPerUs automatically. */
     //SystemCoreClockUpdate();
     PllClock        = PLL_CLOCK;            // PLL
     SystemCoreClock = PLL_CLOCK / 1;        // HCLK
@@ -377,7 +377,7 @@ int32_t main(void)
         /* Disable Timer for PWM0 channel 0 */
         PWM_ForceStop(PWM0, PWM_CH_0_MASK);
 
-        /* Disable Capture Function and Capture Input path for  PWM0 channel 0 */
+        /* Disable Capture Function and Capture Input path for PWM0 channel 0 */
         PWM_DisableCapture(PWM0, PWM_CH_0_MASK);
 
         /* Clear Capture Interrupt flag for PWM0 channel 0 */

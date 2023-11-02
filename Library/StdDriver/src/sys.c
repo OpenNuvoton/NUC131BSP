@@ -143,7 +143,7 @@ void SYS_ResetCPU(void)
   *             - \ref BPWM0_RST
   *             - \ref BPWM1_RST
   * @return     None
-  * @details    This function reset selected modules.
+  * @details    This function reset selected module.
   */
 void SYS_ResetModule(uint32_t u32ModuleIndex)
 {
@@ -168,7 +168,6 @@ void SYS_ResetModule(uint32_t u32ModuleIndex)
   * @details    This function configure Brown-out detector function.
   *             It configure Brown-out detector reset or interrupt mode, enable Brown-out function and set Brown-out voltage level.
   *             The register write-protection function should be disabled before using this function.
-  *
   */
 void SYS_EnableBOD(int32_t i32Mode, uint32_t u32BODLevel)
 {
