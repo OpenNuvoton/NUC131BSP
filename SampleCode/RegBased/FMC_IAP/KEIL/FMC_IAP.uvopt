@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>FMC_IAP</TargetName>
+    <TargetName>FMC_IAP_LD</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -163,7 +163,7 @@
   </Target>
 
   <Target>
-    <TargetName>FMC_IAP_LD</TargetName>
+    <TargetName>FMC_IAP</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
