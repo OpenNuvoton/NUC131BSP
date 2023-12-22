@@ -6,10 +6,10 @@
  * @brief    NUC131 Series CMSIS System Header File
  *
  * @note
- * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
  *
+ * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #ifndef __SYSTEM_NUC131_H
 #define __SYSTEM_NUC131_H

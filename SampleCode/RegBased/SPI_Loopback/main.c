@@ -8,7 +8,8 @@
  *           This sample code needs to connect SPI0_MISO0 pin and SPI0_MOSI0 pin together.
  *           It will compare the received data with transmitted data.
  * @note
- * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include <stdio.h>
 #include "NUC131.h"

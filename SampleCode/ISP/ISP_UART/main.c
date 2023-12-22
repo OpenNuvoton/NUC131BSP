@@ -7,8 +7,9 @@
              sample code to connect with chip UART and assign update file
              of Flash.
  * @note
- * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
  *
+ * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #include <stdio.h>
 #include "ISP_USER.h"
@@ -16,6 +17,15 @@
 
 #define PLLCON_SETTING  CLK_PLLCON_50MHz_HIRC
 #define PLL_CLOCK       50000000
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Define functions prototype                                                                              */
+/*---------------------------------------------------------------------------------------------------------*/
+void ProcessHardFault(void);
+void SH_Return(void);
+
+void ProcessHardFault(void){}
+void SH_Return(void){}
 
 int32_t SYS_Init(void)
 {

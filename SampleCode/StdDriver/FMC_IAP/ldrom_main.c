@@ -6,14 +6,20 @@
  * @brief    FMC LDROM IAP sample program for NUC131 series MCU
  *
  * @note
- * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include <stdio.h>
 #include "NUC131.h"
 
 
+#ifdef __GNUC__
+#define printf(...)
+#endif
 
 #define PLL_CLOCK           50000000
+
+void ProcessHardFault(void){}
 
 void SYS_Init(void)
 {

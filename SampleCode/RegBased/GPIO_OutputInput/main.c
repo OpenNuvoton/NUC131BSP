@@ -5,7 +5,8 @@
  * $Date: 15/07/10 11:35a $
  * @brief    Show how to set GPIO pin mode and use pin data input/output control.
  * @note
- * Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2014 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #include <stdio.h>
 #include "NUC131.h"
