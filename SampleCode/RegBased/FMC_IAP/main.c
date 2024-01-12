@@ -90,6 +90,9 @@ void UART0_Init(void)
     UART0->LCR = UART_WORD_LEN_8 | UART_PARITY_NONE | UART_STOP_BIT_1;
 }
 
+#if defined ( __ICCARM__ )
+#pragma optimize=low
+#endif
 
 void FMC_LDROM_Test(void)
 {
@@ -246,6 +249,21 @@ int32_t main(void)
         FMC_LDROM_Test();
     }
 
+#if defined(__GNUC_AP__)
+    for(i = 0; i < 4; i++)
+    {
+        /* Call the function of LDROM */
+        func = (int32_t (*)(int32_t))g_au32funcTable[i];
+        if(func(i + 1) == ((i + 1)*(i + 1)))
+        {
+            printf("Call LDROM function %d ok!\n", i);
+        }
+        else
+        {
+            printf("Call LDROM function %d fail.\n", i);
+        }
+    }
+#else
     for(i = 0; i < 4; i++)
     {
         /* Call the function of LDROM */
@@ -259,6 +277,7 @@ int32_t main(void)
             printf("Call LDROM function %d fail.\n", i);
         }
     }
+ #endif
 
 lexit:
 

@@ -99,7 +99,7 @@ int main(void)
             /* Read received data */
             g_au32DestinationData[u32DataCount] = SPI0->RX;
             u32DataCount++;
-            if(u32DataCount > TEST_COUNT)
+            if(u32DataCount >= TEST_COUNT)
                 break;
         }
 
