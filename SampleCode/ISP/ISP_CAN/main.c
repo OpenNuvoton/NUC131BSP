@@ -12,13 +12,12 @@
 #include <string.h>
 #include "NUC131.h"
 
+#define V6M_AIRCR_VECTKEY_DATA            0x05FA0000UL
+#define V6M_AIRCR_SYSRESETREQ             0x00000004UL
 
-#define PLLCON_SETTING          CLK_PLLCON_48MHz_HXT
-#define PLL_CLOCK               48000000
-#define HCLK_DIV                        1
-
-#define GPIO_SETMODE(port, pin, u32Mode) port->MODE = (port->MODE & ~(0x3ul << (pin << 1))) | (u32Mode << (pin << 1));
-
+#define PLLCON_SETTING                    CLK_PLLCON_48MHz_HXT
+#define PLL_CLOCK                         48000000
+#define HCLK_DIV                          1
 
 #define CAN_BAUD_RATE                     500000
 #define Master_ISP_ID                     0x487
@@ -95,7 +94,7 @@ int32_t SYS_Init(void)
 
     /* Enable Internal and External RC clock */
     CLK->PWRCON |= CLK_PWRCON_OSC22M_EN_Msk | CLK_PWRCON_XTL12M_EN_Msk;
-    
+
 
     /* Waiting for Internal RC clock ready */
     u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
@@ -148,7 +147,7 @@ void CAN_Init(void)
 {
     /* Enable CAN module clock */
     CLK->APBCLK |= CLK_APBCLK_CAN0_EN_Msk;
-    
+
     /* Set PD multi-function pins for CANTX0, CANRX0 */
     SYS->GPB_MFP &= ~(SYS_GPD_MFP_PD6_Msk | SYS_GPD_MFP_PD7_Msk);
     SYS->GPD_MFP |= SYS_GPD_MFP_PD6_CAN0_RXD | SYS_GPD_MFP_PD7_CAN0_TXD;
@@ -170,7 +169,7 @@ int main(void)
     /* Unlock protected registers */
     SYS_UnlockReg();
     /* Init System, IP clock and multi-function I/O */
-    if( SYS_Init() < 0 ) goto lexit;
+    if(SYS_Init() < 0) goto _APROM;
     /* Enable FMC ISP function */
     FMC_Open();
     FMC_ENABLE_AP_UPDATE();
@@ -190,7 +189,7 @@ int main(void)
 
         if(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
         {
-            goto lexit;
+            goto _APROM;
         }
     }
 
@@ -231,12 +230,13 @@ int main(void)
         }
     }
 
-lexit:
+_APROM:
+    SYS->RSTSRC = (SYS_RSTSRC_RSTS_POR_Msk | SYS_RSTSRC_RSTS_RESET_Msk);
+    FMC->ISPCON &= ~(FMC_ISPCON_ISPEN_Msk | FMC_ISPCON_BS_Msk);
+    SCB->AIRCR = (V6M_AIRCR_VECTKEY_DATA | V6M_AIRCR_SYSRESETREQ);
+
     /* Trap the CPU */
-    for(;;)
-    {
-        __WFI();
-    }
+    while(1);
 }
 
 void ProcessHardFault()
