@@ -263,6 +263,16 @@ extern "C"
 #define PWM_SET_CMR(pwm, u32ChannelNum, u32CMR) ((pwm)->CMPDAT[(u32ChannelNum)] = (u32CMR))
 
 /**
+ * @brief This macro get the comparator of the selected channel
+ * @param[in] epwm The pointer of the specified PWM module
+ * @param[in] u32ChannelNum EPWM channel number. Valid values are between 0~5
+ * @return Return the comparator of specified channel. Valid values are between 0~0xFFFF
+ * @details This macro is used to get the comparator of specified channel.
+ * \hideinitializer
+ */
+#define PWM_GET_CMR(pwm, u32ChannelNum) ((pwm)->CMPDAT[(u32ChannelNum)])
+
+/**
  * @brief This macro set the period of the selected channel
  * @param[in] pwm The pointer of the specified PWM module
  * @param[in] u32ChannelNum PWM channel number. Valid values are between 0, 2, 4. Every two channels share the same setting.
@@ -274,6 +284,16 @@ extern "C"
  * \hideinitializer
  */
 #define PWM_SET_CNR(pwm, u32ChannelNum, u32CNR)  ((pwm)->PERIOD[(((u32ChannelNum) >> 1) << 1)] = (u32CNR))
+
+/**
+ * @brief This macro get the period of the selected channel
+ * @param[in] epwm The pointer of the specified PWM module
+ * @param[in] u32ChannelNum EPWM channel number. Valid values are between 0~5
+ * @return Return the period of specified channel. Valid values are between 0~0xFFFF
+ * @details This macro is used to get the period of specified channel.
+ * \hideinitializer
+ */
+#define PWM_GET_CNR(pwm, u32ChannelNum) ((pwm)->PERIOD[(((u32ChannelNum >> 1) << 1))])
 
 /**
  * @brief This macro set the PWM aligned type
