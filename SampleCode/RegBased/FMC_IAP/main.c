@@ -32,6 +32,8 @@ int32_t g_FMC_i32ErrCode;
 
 void SYS_Init(void)
 {
+	uint32_t u32TimeOutCnt;
+
     int32_t i;
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
@@ -290,7 +292,3 @@ lexit:
     printf("\nDone\n");
     while(SYS->PDID) __WFI();
 }
-
-
-
-

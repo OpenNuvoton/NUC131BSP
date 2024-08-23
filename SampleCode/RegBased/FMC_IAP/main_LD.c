@@ -62,6 +62,8 @@ void SysTickDelay(uint32_t us)
 
 void SYS_Init(void)
 {
+	uint32_t u32TimeOutCnt;
+
     int32_t i;
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
@@ -138,7 +140,7 @@ int32_t IAP_Func0(int32_t n)
     }
 
     return n;
-#endif    
+#endif
 }
 
 int32_t IAP_Func1(int32_t n)
@@ -154,7 +156,7 @@ int32_t IAP_Func1(int32_t n)
     }
 
     return n;
-#endif    
+#endif
 }
 int32_t IAP_Func2(int32_t n)
 {
@@ -169,7 +171,7 @@ int32_t IAP_Func2(int32_t n)
     }
 
     return n;
-#endif    
+#endif
 }
 int32_t IAP_Func3(int32_t n)
 {
@@ -184,7 +186,7 @@ int32_t IAP_Func3(int32_t n)
     }
 
     return n;
-#endif    
+#endif
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -236,7 +238,3 @@ int32_t main(void)
     while(SYS->PDID)__WFI();
 #endif
 }
-
-
-
-
